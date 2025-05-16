@@ -1,0 +1,30 @@
+# SagaDungeons 配置文件
+# 版本: 1.0.0
+
+# 调试模式
+debug: false
+
+# 副本设置
+dungeon:
+  # 副本世界前缀
+  world-prefix: "sd_"
+  # 默认超时时间(秒)
+  default-timeout: 3600
+  # 副本创建冷却时间(秒)
+  creation-cooldown: 300
+  # 是否在服务器启动时清理残留副本
+  cleanup-on-startup: true
+
+# 经济设置
+economy:
+  # 是否启用Vault经济
+  use-vault: true
+  # 是否启用PlayerPoints点券
+  use-playerpoints: true
+
+# 插件集成
+integration:
+  # 是否启用MythicMobs集成
+  mythicmobs: true
+  # 是否启用PlaceholderAPI集成
+  placeholderapi: true
