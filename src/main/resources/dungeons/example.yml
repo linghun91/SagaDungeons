@@ -1,0 +1,34 @@
+name: example
+displayName: "示例副本"
+defaultTimeout: 3600
+moneyCost: 1000
+pointsCost: 100
+levelRequirement: 10
+deathLimit: 3
+reviveItemMaterial: "GOLDEN_APPLE"
+reviveItemName: "&6复活苹果"
+worldPath: "worlds/example"
+spawnLocation: "0,100,0"
+
+# 触发器配置
+triggers:
+  levelJump:
+    id: "example_to_level2"
+    targetLevel: "example_level_2"
+    condition: "COMPLETION"
+    config: 
+      # 当副本完成时，自动进入下一个关卡
+      type: LEVEL_JUMP
+      target: example_level_2
+      delay: 5
+      message: "&a恭喜完成当前关卡！5秒后进入下一关..." 
+  levelback:
+    id: "example_to_level1"
+    targetLevel: "example_level_1"
+    condition: "DEATH"
+    config: 
+      # 当副本死亡时，自动返回上一个关卡
+      type: LEVEL_JUMP
+      target: example_level_1
+      delay: 0
+      message: "&a你挑战当前关卡失败！被送回上一关..." 

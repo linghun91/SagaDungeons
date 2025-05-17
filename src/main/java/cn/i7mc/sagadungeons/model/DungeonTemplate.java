@@ -27,6 +27,7 @@ public class DungeonTemplate {
     private String serializedReviveItem; // 序列化复活道具
     private String worldPath; // 世界文件路径
     private String spawnLocation; // 重生点位置
+    private String triggerConfig;
 
     // 条件启用状态
     private boolean moneyEnabled = true;
@@ -403,5 +404,29 @@ public class DungeonTemplate {
      */
     public void setItemsEnabled(boolean itemsEnabled) {
         this.itemsEnabled = itemsEnabled;
+    }
+
+    /**
+     * 获取触发器配置
+     * @return 触发器配置
+     */
+    public String getTriggerConfig() {
+        return triggerConfig;
+    }
+
+    /**
+     * 设置触发器配置
+     * @param triggerConfig 触发器配置
+     */
+    public void setTriggerConfig(String triggerConfig) {
+        this.triggerConfig = triggerConfig;
+    }
+
+    /**
+     * 检查是否有触发器配置
+     * @return 是否有触发器配置
+     */
+    public boolean hasTriggerConfig() {
+        return triggerConfig != null && !triggerConfig.isEmpty();
     }
 }

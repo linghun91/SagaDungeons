@@ -1,5 +1,74 @@
 # SagaDungeons 更新日志
 
+## 版本 1.0.7 (2025-05-17)
+
+### 新增功能
+
+- 实现了副本触发系统
+  - 添加了 `DungeonTrigger` 接口，支持自定义触发器实现
+  - 实现了 `LevelJumpTrigger` 类，用于处理副本关卡跳转
+  - 添加了 `TriggerManager` 类，用于管理和执行触发器
+  - 支持触发器优先级和条件组合
+  - 优化了触发器执行逻辑，确保线程安全
+
+### 功能改进
+
+- 优化了副本关卡切换机制，使用触发器系统替代原有的直接跳转
+- 改进了触发器条件检查逻辑，支持更复杂的条件组合
+- 增强了触发器执行的可配置性，支持自定义执行顺序和优先级
+
+### 配置示例
+
+```yaml
+triggers:
+  level_jump:
+    type: LEVEL_JUMP
+    priority: 1
+    conditions:
+      - type: MOB_KILL
+        count: 10
+      - type: REACH_AREA
+        location: "world,100,64,100"
+        radius: 3.0
+    actions:
+      - type: JUMP_TO_LEVEL
+        target_level: 2
+```
+
+## 版本 1.0.6 (2025-05-17)
+
+### 新增功能
+
+- 增强了副本通关条件系统
+  - 添加了条件组合模式（AND/OR）支持
+  - 实现了条件优先级系统
+  - 支持多级条件组合
+  - 优化了条件进度显示
+
+### 功能改进
+
+- 优化了通关条件的配置结构，支持更灵活的条件组合
+- 改进了条件进度计算逻辑，为AND/OR模式提供不同的进度计算方式
+- 增强了条件描述系统，提供更详细的进度信息
+
+### 配置示例
+
+```yaml
+completion:
+  # 组合条件示例
+  composite:
+    type: AND  # 或 OR
+    priority: 1
+    conditions:
+      condition1:
+        killCount:
+          count: 10
+      condition2:
+        reachArea:
+          location: "world,100,64,100"
+          radius: 3.0
+```
+
 ## 版本 1.0.5 (2025-05-17)
 
 ### 修复问题
