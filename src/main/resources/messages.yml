@@ -83,7 +83,6 @@ command:
     leave: "&e/sd leave &7- 离开当前副本"
     kick: "&e/sd kick <玩家> &7- 将玩家踢出副本"
     public: "&e/sd public &7- 切换副本公开/私有状态"
-    spawner: "&e/sd spawner <set/remove/list> &7- 管理刷怪点"
     admin: "&e/sd admin &7- 管理员命令（需要管理员权限）"
     help: "&e/sd help &7- 显示此帮助信息"
     footer: "&6======================"
@@ -120,6 +119,7 @@ command:
       forceclose: "&e/sd admin forceclose <副本ID/all> &7- 强制关闭指定副本或所有副本"
       setspawn: "&e/sd admin setspawn <模板名称> &7- 将当前位置设置为副本模板的重生点"
       gui: "&e/sd admin gui &7- 打开GUI管理界面"
+      spawner: "&e/sd admin spawner <set/remove/list> &7- 管理副本刷怪点"
       help: "&e/sd admin help &7- 显示此管理员帮助信息"
       footer: "&6==========================="
     reload:
@@ -173,6 +173,12 @@ command:
       success: "&a成功将当前位置设置为模板 &e%template% &a的重生点！"
     gui:
       success: "&a成功打开GUI管理界面！"
+    spawner:
+      usage: "&c用法: /sd admin spawner <set/remove/list>"
+      not-in-dungeon: "&c你必须在副本中才能管理刷怪点。"
+      dungeon-not-found: "&c找不到你所在的副本。"
+      template-not-found: "&c找不到副本模板。"
+      unknown: "&c未知子命令: &e%command%&c。"
 
   create:
     usage: "&c用法: /sd create <模板>"

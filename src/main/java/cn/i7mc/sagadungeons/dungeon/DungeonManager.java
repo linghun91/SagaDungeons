@@ -132,6 +132,11 @@ public class DungeonManager {
                     // 更新玩家统计数据
                     playerData.incrementTotalCreated();
 
+                    // 初始化副本刷怪点 - 延迟20tick执行，确保世界完全加载
+                    Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                        plugin.getMobSpawnerManager().initializeSpawners(dungeonId, templateName, world);
+                    }, 20L);
+
                     // 传送玩家到副本
                     Location spawnLocation;
 
@@ -199,6 +204,9 @@ public class DungeonManager {
         // 取消超时任务
         instance.cancelTimeoutTask();
 
+        // 清理副本刷怪点
+        plugin.getMobSpawnerManager().cleanupSpawners(dungeonId);
+
         // 将所有玩家传送出副本
         for (Player player : world.getPlayers()) {
             // 获取玩家数据
@@ -246,9 +254,7 @@ public class DungeonManager {
             // 世界存在，使用WorldManager的方法卸载并删除
             plugin.getWorldManager().deleteDungeonWorld(worldName, success -> {
                 if (success) {
-                    plugin.getLogger().info("成功删除副本世界: " + worldName);
                 } else {
-                    plugin.getLogger().warning("删除副本世界失败: " + worldName);
                 }
             });
         } else {
@@ -494,6 +500,16 @@ public class DungeonManager {
     }
 
     /**
+     * 获取玩家当前所在副本ID
+     * @param player 玩家
+     * @return 副本ID，如果不在副本中则返回null
+     */
+    public String getCurrentDungeonId(Player player) {
+        PlayerData playerData = getPlayerData(player.getUniqueId());
+        return playerData.getCurrentDungeonId();
+    }
+
+    /**
      * 获取奖励管理器
      * @return 奖励管理器
      */
@@ -521,7 +537,6 @@ public class DungeonManager {
         File dungeonDataFile = new File(plugin.getDataFolder(), "dungeons.yml");
         if (dungeonDataFile.exists()) {
             dungeonDataFile.delete();
-            plugin.getLogger().info("已重置副本ID记录，下一个副本ID将从001开始");
         }
 
         // 不需要加载旧的副本数据，因为所有残留副本都会被清理
@@ -568,7 +583,6 @@ public class DungeonManager {
                     playerDataMap.put(playerUUID, playerData);
                 }
             } catch (IllegalArgumentException e) {
-                plugin.getLogger().warning("Invalid UUID in player data: " + uuidString);
             }
         }
     }
@@ -639,7 +653,6 @@ public class DungeonManager {
         try {
             config.save(dungeonDataFile);
         } catch (IOException e) {
-            plugin.getLogger().severe("Failed to save dungeon data: " + e.getMessage());
         }
     }
 
@@ -673,7 +686,6 @@ public class DungeonManager {
         try {
             config.save(playerDataFile);
         } catch (IOException e) {
-            plugin.getLogger().severe("Failed to save player data: " + e.getMessage());
         }
     }
 

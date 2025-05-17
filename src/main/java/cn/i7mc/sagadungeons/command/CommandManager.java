@@ -9,6 +9,7 @@ import cn.i7mc.sagadungeons.command.admin.GUICommand;
 import cn.i7mc.sagadungeons.command.admin.SetItemCommand;
 import cn.i7mc.sagadungeons.command.admin.SetSpawnCommand;
 import cn.i7mc.sagadungeons.command.admin.SetWorldCommand;
+import cn.i7mc.sagadungeons.command.admin.SpawnerAdminCommand;
 import cn.i7mc.sagadungeons.command.player.CreateCommand;
 import cn.i7mc.sagadungeons.command.player.InviteCommand;
 import cn.i7mc.sagadungeons.command.player.JoinCommand;
@@ -16,7 +17,6 @@ import cn.i7mc.sagadungeons.command.player.KickCommand;
 import cn.i7mc.sagadungeons.command.player.LeaveCommand;
 import cn.i7mc.sagadungeons.command.player.ListCommand;
 import cn.i7mc.sagadungeons.command.player.PublicCommand;
-import cn.i7mc.sagadungeons.command.player.SpawnerCommand;
 import cn.i7mc.sagadungeons.command.player.StatsCommand;
 import cn.i7mc.sagadungeons.util.MessageUtil;
 import org.bukkit.command.Command;
@@ -64,7 +64,6 @@ public class CommandManager implements CommandExecutor, TabCompleter {
         registerSubCommand(new LeaveCommand(plugin));
         registerSubCommand(new KickCommand(plugin));
         registerSubCommand(new PublicCommand(plugin));
-        registerSubCommand(new SpawnerCommand(plugin));
 
         // 注册管理员子命令
         registerSubCommand(new AdminCommand(plugin));
@@ -75,6 +74,7 @@ public class CommandManager implements CommandExecutor, TabCompleter {
         registerSubCommand(new ForceCloseCommand(plugin));
         registerSubCommand(new SetSpawnCommand(plugin));
         registerSubCommand(new GUICommand(plugin));
+        registerSubCommand(new SpawnerAdminCommand(plugin));
     }
 
     /**
@@ -145,9 +145,6 @@ public class CommandManager implements CommandExecutor, TabCompleter {
                 showAdminHelp(sender);
                 return true;
             }
-
-            // 获取管理员子命令
-            String adminSubCommand = args[1].toLowerCase();
 
             // 处理管理员子命令
             String[] adminArgs = new String[args.length - 1];
@@ -223,8 +220,8 @@ public class CommandManager implements CommandExecutor, TabCompleter {
             // 添加子命令
             for (AbstractCommand subCommand : commands.values()) {
                 // 排除createtemplate等管理员直接命令，保留在admin子命令中
-                if (!isAdminOnlyCommand(subCommand.getName()) && 
-                    subCommand.getName().toLowerCase().startsWith(arg) && 
+                if (!isAdminOnlyCommand(subCommand.getName()) &&
+                    subCommand.getName().toLowerCase().startsWith(arg) &&
                     subCommand.hasPermission(sender)) {
                     completions.add(subCommand.getName());
                 }
@@ -294,7 +291,8 @@ public class CommandManager implements CommandExecutor, TabCompleter {
                commandName.equalsIgnoreCase("setitem") ||
                commandName.equalsIgnoreCase("forceclose") ||
                commandName.equalsIgnoreCase("setspawn") ||
-               commandName.equalsIgnoreCase("gui");
+               commandName.equalsIgnoreCase("gui") ||
+               commandName.equalsIgnoreCase("spawner");
     }
 
     /**
@@ -314,7 +312,6 @@ public class CommandManager implements CommandExecutor, TabCompleter {
         MessageUtil.sendMessage(sender, "command.help.leave");
         MessageUtil.sendMessage(sender, "command.help.kick");
         MessageUtil.sendMessage(sender, "command.help.public");
-        MessageUtil.sendMessage(sender, "command.help.spawner");
         MessageUtil.sendMessage(sender, "command.help.help");
 
         // 如果有管理员权限，提示使用管理员命令

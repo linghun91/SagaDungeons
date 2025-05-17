@@ -4,6 +4,7 @@ import cn.i7mc.sagadungeons.SagaDungeons;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.plugin.Plugin;
 
 import java.lang.reflect.Method;
@@ -209,5 +210,73 @@ public class MythicMobsHook {
         }
 
         return mobTypes;
+    }
+
+    /**
+     * 直接在指定位置生成MythicMobs怪物
+     * @param mobType 怪物类型
+     * @param location 生成位置
+     * @param amount 生成数量
+     * @return 生成的实体列表，如果失败则返回空列表
+     */
+    public List<LivingEntity> spawnMob(String mobType, Location location, int amount) {
+        List<LivingEntity> entities = new ArrayList<>();
+
+        if (!isAvailable() || mobType == null || mobType.isEmpty() ||
+            location == null || amount <= 0) {
+            return entities;
+        }
+
+        try {
+            // 获取MobManager
+            Method getMobManagerMethod = mythicMobsInstance.getClass().getMethod("getMobManager");
+            Object mobManager = getMobManagerMethod.invoke(mythicMobsInstance);
+
+            // 获取MythicMob
+            Method getMythicMobMethod = mobManager.getClass().getMethod("getMythicMob", String.class);
+            Object optional = getMythicMobMethod.invoke(mobManager, mobType);
+
+            // 检查是否存在
+            Method isPresentMethod = optional.getClass().getMethod("isPresent");
+            boolean isPresent = (boolean) isPresentMethod.invoke(optional);
+
+            if (!isPresent) {
+                return entities;
+            }
+
+            // 获取MythicMob实例
+            Method getMethod = optional.getClass().getMethod("get");
+            Object mythicMob = getMethod.invoke(optional);
+
+            // 确保区块已加载
+            if (!location.getChunk().isLoaded()) {
+                location.getChunk().load();
+            }
+
+            // 创建AbstractLocation
+            Class<?> bukkitAdapterClass = Class.forName("io.lumine.mythic.bukkit.BukkitAdapter");
+            Method adaptMethod = bukkitAdapterClass.getMethod("adapt", Location.class);
+            Object abstractLocation = adaptMethod.invoke(null, location);
+
+            // 生成怪物
+            Method spawnMethod = mythicMob.getClass().getMethod("spawn", Class.forName("io.lumine.mythic.api.adapters.AbstractLocation"), double.class);
+
+            for (int i = 0; i < amount; i++) {
+                Object activeMob = spawnMethod.invoke(mythicMob, abstractLocation, 1.0);
+
+                // 获取实体
+                Method getEntityMethod = activeMob.getClass().getMethod("getEntity");
+                Object entity = getEntityMethod.invoke(activeMob);
+
+                Method getBukkitEntityMethod = entity.getClass().getMethod("getBukkitEntity");
+                LivingEntity livingEntity = (LivingEntity) getBukkitEntityMethod.invoke(entity);
+
+                entities.add(livingEntity);
+            }
+        } catch (Exception e) {
+            // 忽略异常
+        }
+
+        return entities;
     }
 }

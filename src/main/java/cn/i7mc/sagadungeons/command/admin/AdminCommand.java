@@ -175,6 +175,20 @@ public class AdminCommand extends AbstractCommand {
                 // 执行命令
                 new GUICommand(plugin).execute(sender, new String[0]);
                 break;
+            case "spawner":
+                // 管理刷怪点
+                if (args.length < 2) {
+                    sendMessage(sender, "command.admin.spawner.usage");
+                    return;
+                }
+
+                // 创建参数数组
+                String[] spawnerArgs = new String[args.length - 1];
+                System.arraycopy(args, 1, spawnerArgs, 0, args.length - 1);
+
+                // 执行命令
+                new SpawnerAdminCommand(plugin).execute(sender, spawnerArgs);
+                break;
             case "help":
                 // 显示帮助
                 showAdminHelp(sender);
@@ -207,6 +221,7 @@ public class AdminCommand extends AbstractCommand {
             subCommands.add("forceclose");
             subCommands.add("setspawn");
             subCommands.add("gui");
+            subCommands.add("spawner");
             subCommands.add("help");
 
             for (String subCommand : subCommands) {
@@ -237,6 +252,19 @@ public class AdminCommand extends AbstractCommand {
                         completions.add(templateName);
                     }
                 }
+            } else if (args[0].equalsIgnoreCase("spawner")) {
+                String arg = args[1].toLowerCase();
+
+                // 补全刷怪点子命令
+                if ("set".startsWith(arg)) {
+                    completions.add("set");
+                }
+                if ("remove".startsWith(arg)) {
+                    completions.add("remove");
+                }
+                if ("list".startsWith(arg)) {
+                    completions.add("list");
+                }
             }
         } else if (args.length == 3) {
             // 补全世界名称或物品类型
@@ -260,13 +288,42 @@ public class AdminCommand extends AbstractCommand {
                 if ("revive".startsWith(arg)) {
                     completions.add("revive");
                 }
+            } else if (args[0].equalsIgnoreCase("spawner") && args[1].equalsIgnoreCase("set")) {
+                String arg = args[2].toLowerCase();
+
+                // 为set命令提供一些建议的刷怪点ID
+                List<String> suggestedIds = new ArrayList<>();
+                suggestedIds.add("mob1");
+                suggestedIds.add("boss");
+                suggestedIds.add("spawn1");
+
+                // 过滤并添加到补全列表
+                for (String id : suggestedIds) {
+                    if (id.toLowerCase().startsWith(arg)) {
+                        completions.add(id);
+                    }
+                }
+            } else if (args[0].equalsIgnoreCase("spawner") && args[1].equalsIgnoreCase("remove")) {
+                // 这里需要获取当前玩家所在副本的模板，然后列出所有刷怪点ID
+                // 但由于这需要更复杂的逻辑，我们在SpawnerAdminCommand中处理
             }
         } else if (args.length == 4) {
-            // 补全物品数量
+            // 补全物品数量或怪物类型
             if (args[0].equalsIgnoreCase("setitem")) {
                 completions.add("1");
                 completions.add("5");
                 completions.add("10");
+            } else if (args[0].equalsIgnoreCase("spawner") && args[1].equalsIgnoreCase("set")) {
+                String arg = args[3].toLowerCase();
+
+                // 补全怪物类型
+                if (plugin.getHookManager().isMythicMobsAvailable()) {
+                    for (String mobType : plugin.getHookManager().getMythicMobsHook().getMobTypes()) {
+                        if (mobType.toLowerCase().startsWith(arg)) {
+                            completions.add(mobType);
+                        }
+                    }
+                }
             }
         }
 
@@ -293,6 +350,7 @@ public class AdminCommand extends AbstractCommand {
         MessageUtil.sendMessage(sender, "command.admin.help.forceclose");
         MessageUtil.sendMessage(sender, "command.admin.help.setspawn");
         MessageUtil.sendMessage(sender, "command.admin.help.gui");
+        MessageUtil.sendMessage(sender, "command.admin.help.spawner");
         MessageUtil.sendMessage(sender, "command.admin.help.help");
 
         // 发送帮助页脚
