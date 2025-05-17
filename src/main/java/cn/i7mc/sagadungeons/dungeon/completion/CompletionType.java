@@ -23,5 +23,15 @@ public enum CompletionType {
     /**
      * 击杀数量
      */
-    KILL_COUNT
+    KILL_COUNT,
+    
+    /**
+     * 条件组合 - 所有条件都必须满足
+     */
+    AND,
+    
+    /**
+     * 条件组合 - 满足任意一个条件即可
+     */
+    OR
 }
