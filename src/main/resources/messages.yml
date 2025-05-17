@@ -270,7 +270,7 @@ command:
       reached: "&c你已经达到死亡次数上限 &e%limit% &c次，已被踢出副本！"
     revive:
       item: "&a你使用了复活道具 &e%item%&a，已在副本中重生！"
-  admin-close: "&c副本 &e%id% &c已被管理员关闭，你已被传送出副本！"
+    admin-close: "&c副本 &e%id% &c已被管理员关闭，你已被传送出副本！"
   completion:
     success: "&a恭喜你完成了副本 &e%dungeon%&a！"
     kill-all:

@@ -8,6 +8,7 @@ import cn.i7mc.sagadungeons.dungeon.death.DeathManager;
 import cn.i7mc.sagadungeons.dungeon.reward.RewardManager;
 import cn.i7mc.sagadungeons.model.DungeonTemplate;
 import cn.i7mc.sagadungeons.model.PlayerData;
+import cn.i7mc.sagadungeons.util.MessageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -213,8 +214,8 @@ public class DungeonManager {
             playerData.setCurrentDungeonId(null);
 
             // 发送消息通知玩家副本被管理员关闭
-            plugin.getConfigManager().getMessageManager().sendMessage(player, "admin-close",
-                    plugin.getConfigManager().getMessageManager().createPlaceholders("id", dungeonId));
+            plugin.getConfigManager().getMessageManager().sendMessage(player, "command.death.admin-close",
+                    MessageUtil.createPlaceholders("id", dungeonId));
         }
 
         // 立即从活动副本列表中移除，防止玩家加入正在删除的副本
