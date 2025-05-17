@@ -74,7 +74,7 @@ dungeon:
 
 command:
   help:
-    header: "&6=== SagaDungeons 帮助 ==="
+    header: "&6=== SagaDungeons 玩家帮助 ==="
     create: "&e/sd create <模板> &7- 创建一个副本"
     list: "&e/sd list &7- 列出所有副本"
     stats: "&e/sd stats [玩家] &7- 查看副本统计数据"
@@ -84,10 +84,9 @@ command:
     kick: "&e/sd kick <玩家> &7- 将玩家踢出副本"
     public: "&e/sd public &7- 切换副本公开/私有状态"
     spawner: "&e/sd spawner <set/remove/list> &7- 管理刷怪点"
-    admin: "&e/sd admin &7- 管理员命令"
-    reload: "&e/sd reload &7- 重新加载配置"
+    admin: "&e/sd admin &7- 管理员命令（需要管理员权限）"
     help: "&e/sd help &7- 显示此帮助信息"
-    footer: "&6======================="
+    footer: "&6======================"
   spawner:
     set:
       usage: "&c用法: /sd spawner set <刷怪点ID> <怪物类型> <数量> [冷却时间]"
@@ -253,7 +252,7 @@ command:
       empty: "&c当前没有刷怪点。"
       header: "&6=== 刷怪点列表 ==="
       entry: "&e%id% &7- 怪物: &e%mob% &7- 数量: &e%amount% &7- 冷却: &e%cooldown%&7秒"
-      footer: "&6================="
+      footer: "&6=================="
 
   stats:
     player-not-found: "&c找不到玩家 &e%player%&c。"
@@ -263,7 +262,7 @@ command:
       header: "&7已完成的副本:"
       entry: "&7- &e%dungeon% &7(&e%count%&7次)"
       none: "&7尚未完成任何副本"
-    footer: "&6======================="
+    footer: "&6======================"
 
   death:
     count: "&c你已经死亡 &e%count%/%limit% &c次！"

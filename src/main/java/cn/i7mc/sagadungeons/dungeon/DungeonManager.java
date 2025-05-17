@@ -213,7 +213,7 @@ public class DungeonManager {
             playerData.setCurrentDungeonId(null);
 
             // 发送消息通知玩家副本被管理员关闭
-            plugin.getConfigManager().getMessageManager().sendMessage(player, "dungeon.admin-close",
+            plugin.getConfigManager().getMessageManager().sendMessage(player, "admin-close",
                     plugin.getConfigManager().getMessageManager().createPlaceholders("id", dungeonId));
         }
 
