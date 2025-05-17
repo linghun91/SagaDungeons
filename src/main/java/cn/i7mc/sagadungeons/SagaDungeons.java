@@ -9,6 +9,7 @@ import cn.i7mc.sagadungeons.event.PlayerListener;
 import cn.i7mc.sagadungeons.event.WorldListener;
 import cn.i7mc.sagadungeons.gui.GUIManager;
 import cn.i7mc.sagadungeons.hook.HookManager;
+import cn.i7mc.sagadungeons.manager.MobSpawnerManager;
 import cn.i7mc.sagadungeons.manager.WorldManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -25,6 +26,7 @@ public class SagaDungeons extends JavaPlugin {
     private WorldManager worldManager;
     private HookManager hookManager;
     private GUIManager guiManager;
+    private MobSpawnerManager mobSpawnerManager;
 
     /**
      * 获取插件实例
@@ -55,6 +57,9 @@ public class SagaDungeons extends JavaPlugin {
         // 初始化GUI管理器
         guiManager = new GUIManager(this);
 
+        // 初始化怪物生成管理器
+        mobSpawnerManager = new MobSpawnerManager(this);
+
         // 初始化命令管理器
         commandManager = new CommandManager(this);
         commandManager.registerCommands();
@@ -70,7 +75,7 @@ public class SagaDungeons extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        
+
         // 保存数据
         if (dungeonManager != null) {
             dungeonManager.saveAllData();
@@ -141,5 +146,13 @@ public class SagaDungeons extends JavaPlugin {
      */
     public GUIManager getGUIManager() {
         return guiManager;
+    }
+
+    /**
+     * 获取怪物生成管理器
+     * @return 怪物生成管理器
+     */
+    public MobSpawnerManager getMobSpawnerManager() {
+        return mobSpawnerManager;
     }
 }

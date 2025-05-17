@@ -8,10 +8,7 @@ import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 通关条件管理器
@@ -42,9 +39,62 @@ public class CompletionManager {
 
         List<CompletionCondition> conditions = new ArrayList<>();
 
+        // 加载组合条件
+        ConfigurationSection compositeSection = section.getConfigurationSection("composite");
+        if (compositeSection != null) {
+            String type = compositeSection.getString("type", "AND");
+            int priority = compositeSection.getInt("priority", 0);
+            
+            CompletionType compositeType = type.equalsIgnoreCase("OR") ? CompletionType.OR : CompletionType.AND;
+            CompositeCondition compositeCondition = new CompositeCondition(plugin, compositeType, priority);
+            
+            // 加载子条件
+            ConfigurationSection conditionsSection = compositeSection.getConfigurationSection("conditions");
+            if (conditionsSection != null) {
+                for (String key : conditionsSection.getKeys(false)) {
+                    ConfigurationSection conditionSection = conditionsSection.getConfigurationSection(key);
+                    if (conditionSection != null) {
+                        CompletionCondition condition = loadCondition(conditionSection);
+                        if (condition != null) {
+                            compositeCondition.addCondition(condition);
+                        }
+                    }
+                }
+            }
+            
+            if (!compositeCondition.getConditions().isEmpty()) {
+                conditions.add(compositeCondition);
+            }
+        }
+
+        // 加载单个条件
+        CompletionCondition singleCondition = loadCondition(section);
+        if (singleCondition != null) {
+            conditions.add(singleCondition);
+        }
+
+        // 保存条件列表
+        if (!conditions.isEmpty()) {
+            // 按优先级排序
+            conditions.sort((c1, c2) -> {
+                int p1 = c1 instanceof CompositeCondition ? ((CompositeCondition) c1).getPriority() : 0;
+                int p2 = c2 instanceof CompositeCondition ? ((CompositeCondition) c2).getPriority() : 0;
+                return Integer.compare(p2, p1); // 优先级高的排在前面
+            });
+            
+            dungeonConditions.put(template.getName(), conditions);
+        }
+    }
+
+    /**
+     * 加载单个条件
+     * @param section 配置部分
+     * @return 条件实例
+     */
+    private CompletionCondition loadCondition(ConfigurationSection section) {
         // 加载全部击杀条件
         if (section.getBoolean("killAll", false)) {
-            conditions.add(new KillAllCondition(plugin));
+            return new KillAllCondition(plugin);
         }
 
         // 加载到达区域条件
@@ -56,7 +106,7 @@ public class CompletionManager {
             if (locationString != null) {
                 Location location = LocationUtil.stringToLocation(locationString);
                 if (location != null) {
-                    conditions.add(new ReachAreaCondition(plugin, location, radius));
+                    return new ReachAreaCondition(plugin, location, radius);
                 }
             }
         }
@@ -67,7 +117,7 @@ public class CompletionManager {
             String mobName = killSpecificSection.getString("mobName");
 
             if (mobName != null && !mobName.isEmpty()) {
-                conditions.add(new KillSpecificCondition(plugin, mobName));
+                return new KillSpecificCondition(plugin, mobName);
             }
         }
 
@@ -77,14 +127,11 @@ public class CompletionManager {
             int count = killCountSection.getInt("count", 10);
 
             if (count > 0) {
-                conditions.add(new KillCountCondition(plugin, count));
+                return new KillCountCondition(plugin, count);
             }
         }
 
-        // 保存条件列表
-        if (!conditions.isEmpty()) {
-            dungeonConditions.put(template.getName(), conditions);
-        }
+        return null;
     }
 
     /**
@@ -162,9 +209,6 @@ public class CompletionManager {
         if (checkCompletion(instance)) {
             // 设置副本状态为已完成
             instance.setState(cn.i7mc.sagadungeons.dungeon.DungeonState.COMPLETED);
-
-            // 注意：副本状态设置为COMPLETED后，DungeonInstance类中的setState方法会自动调用handleCompletion()
-            // 该方法会处理消息发送、奖励发放、玩家统计数据更新和副本删除等操作
         }
     }
 
