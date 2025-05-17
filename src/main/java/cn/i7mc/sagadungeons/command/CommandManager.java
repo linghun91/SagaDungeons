@@ -4,12 +4,16 @@ import cn.i7mc.sagadungeons.SagaDungeons;
 import cn.i7mc.sagadungeons.command.admin.AdminCommand;
 import cn.i7mc.sagadungeons.command.admin.CopyWorldCommand;
 import cn.i7mc.sagadungeons.command.admin.CreateTemplateCommand;
+import cn.i7mc.sagadungeons.command.admin.ForceCloseCommand;
+import cn.i7mc.sagadungeons.command.admin.GUICommand;
 import cn.i7mc.sagadungeons.command.admin.SetItemCommand;
+import cn.i7mc.sagadungeons.command.admin.SetSpawnCommand;
 import cn.i7mc.sagadungeons.command.admin.SetWorldCommand;
 import cn.i7mc.sagadungeons.command.player.CreateCommand;
 import cn.i7mc.sagadungeons.command.player.InviteCommand;
 import cn.i7mc.sagadungeons.command.player.JoinCommand;
 import cn.i7mc.sagadungeons.command.player.KickCommand;
+import cn.i7mc.sagadungeons.command.player.LeaveCommand;
 import cn.i7mc.sagadungeons.command.player.ListCommand;
 import cn.i7mc.sagadungeons.command.player.PublicCommand;
 import cn.i7mc.sagadungeons.command.player.SpawnerCommand;
@@ -57,6 +61,7 @@ public class CommandManager implements CommandExecutor, TabCompleter {
         registerSubCommand(new StatsCommand(plugin));
         registerSubCommand(new InviteCommand(plugin));
         registerSubCommand(new JoinCommand(plugin));
+        registerSubCommand(new LeaveCommand(plugin));
         registerSubCommand(new KickCommand(plugin));
         registerSubCommand(new PublicCommand(plugin));
         registerSubCommand(new SpawnerCommand(plugin));
@@ -67,6 +72,9 @@ public class CommandManager implements CommandExecutor, TabCompleter {
         registerSubCommand(new SetWorldCommand(plugin));
         registerSubCommand(new CopyWorldCommand(plugin));
         registerSubCommand(new SetItemCommand(plugin));
+        registerSubCommand(new ForceCloseCommand(plugin));
+        registerSubCommand(new SetSpawnCommand(plugin));
+        registerSubCommand(new GUICommand(plugin));
     }
 
     /**
@@ -239,6 +247,9 @@ public class CommandManager implements CommandExecutor, TabCompleter {
                 adminSubCommands.add("setworld");
                 adminSubCommands.add("copyworld");
                 adminSubCommands.add("setitem");
+                adminSubCommands.add("forceclose");
+                adminSubCommands.add("setspawn");
+                adminSubCommands.add("gui");
                 adminSubCommands.add("help");
 
                 for (String subCommand : adminSubCommands) {
@@ -285,9 +296,11 @@ public class CommandManager implements CommandExecutor, TabCompleter {
         MessageUtil.sendMessage(sender, "command.help.stats");
         MessageUtil.sendMessage(sender, "command.help.invite");
         MessageUtil.sendMessage(sender, "command.help.join");
+        MessageUtil.sendMessage(sender, "command.help.leave");
         MessageUtil.sendMessage(sender, "command.help.kick");
         MessageUtil.sendMessage(sender, "command.help.public");
         MessageUtil.sendMessage(sender, "command.help.spawner");
+        MessageUtil.sendMessage(sender, "command.help.help");
 
         // 如果有管理员权限，发送管理员命令帮助
         if (sender.hasPermission("sagadungeons.admin")) {

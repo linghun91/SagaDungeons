@@ -45,6 +45,11 @@ dungeon:
   leave:
     success: "&a成功离开副本！"
     not-in-dungeon: "&c你当前不在任何副本中！"
+    fail: "&c离开副本失败！"
+  command.leave:
+    success: "&a成功离开副本！"
+    not-in-dungeon: "&c你当前不在任何副本中！"
+    fail: "&c离开副本失败！"
   invite:
     sent: "&a已向 &e%player% &a发送副本邀请！"
     received: "&a你收到了来自 &e%player% &a的副本邀请！"
@@ -75,11 +80,13 @@ command:
     stats: "&e/sd stats [玩家] &7- 查看副本统计数据"
     invite: "&e/sd invite <玩家> &7- 邀请玩家加入副本"
     join: "&e/sd join <ID/玩家名> &7- 加入一个副本"
+    leave: "&e/sd leave &7- 离开当前副本"
     kick: "&e/sd kick <玩家> &7- 将玩家踢出副本"
     public: "&e/sd public &7- 切换副本公开/私有状态"
     spawner: "&e/sd spawner <set/remove/list> &7- 管理刷怪点"
     admin: "&e/sd admin &7- 管理员命令"
     reload: "&e/sd reload &7- 重新加载配置"
+    help: "&e/sd help &7- 显示此帮助信息"
     footer: "&6======================="
   spawner:
     set:
@@ -87,8 +94,8 @@ command:
       success: "&a成功设置刷怪点 &e%id%&a，怪物类型: &e%mob%&a，数量: &e%amount%&a，冷却时间: &e%cooldown%&a秒"
       invalid-mob-type: "&c无效的怪物类型: &e%mob%"
       invalid-amount: "&c无效的数量，必须是一个正整数"
+      spawner-id-hint: "&7提示: 输入刷怪点ID，例如 mob1, boss, spawn1 等"
       invalid-cooldown: "&c无效的冷却时间，必须是一个整数"
-      spawner-id-hint: "&7请输入刷怪点ID，例如: mob1, boss, spawn1"
     remove:
       usage: "&c用法: /sd spawner remove <刷怪点ID>"
       success: "&a成功移除刷怪点 &e%id%"
@@ -111,6 +118,10 @@ command:
       setworld: "&e/sd admin setworld <模板名称> &7- 将当前世界设置为副本模板的世界"
       copyworld: "&e/sd admin copyworld <模板名称> <世界名称> &7- 将指定世界复制到副本模板的世界目录"
       setitem: "&e/sd admin setitem <模板名称> <类型> [数量] &7- 将手持物品设置为副本的条件或奖励"
+      forceclose: "&e/sd admin forceclose <副本ID/all> &7- 强制关闭指定副本或所有副本"
+      setspawn: "&e/sd admin setspawn <模板名称> &7- 将当前位置设置为副本模板的重生点"
+      gui: "&e/sd admin gui &7- 打开GUI管理界面"
+      help: "&e/sd admin help &7- 显示此管理员帮助信息"
       footer: "&6==========================="
     reload:
       success: "&a配置文件已重新加载。"
@@ -150,6 +161,19 @@ command:
       invalid-amount: "&c无效的数量，必须是一个正整数。"
       success: "&a成功将手持物品设置为模板 &e%template% &a的 &e%type% &a物品。"
       fail: "&c设置物品失败。"
+    forceclose:
+      usage: "&c用法: /sd admin forceclose <副本ID/all>"
+      success: "&a成功关闭副本 &e%id%&a。"
+      fail: "&c关闭副本 &e%id% &c失败。"
+      no-dungeons: "&c当前没有活动的副本。"
+      all-success: "&a成功关闭了 &e%count% &a个副本。"
+    setspawn:
+      not-in-dungeon: "&c你必须在副本中才能设置重生点！"
+      invalid-dungeon: "&c无效的副本！"
+      template-not-found: "&c找不到副本模板！"
+      success: "&a成功将当前位置设置为模板 &e%template% &a的重生点！"
+    gui:
+      success: "&a成功打开GUI管理界面！"
 
   create:
     usage: "&c用法: /sd create <模板>"
@@ -180,9 +204,15 @@ command:
     usage: "&c用法: /sd join <ID/玩家名>"
     already-in-dungeon: "&c你已经在一个副本中，请先离开当前副本。"
     dungeon-not-found: "&c找不到副本 &e%id%&c。"
+    dungeon-not-available: "&c副本 &e%id% &c当前不可用，可能正在被删除或已完成。"
     not-allowed: "&c你没有权限加入这个副本。"
     success: "&a成功加入副本 &e%dungeon%&a。"
     fail: "&c加入副本失败。"
+
+  leave:
+    not-in-dungeon: "&c你不在任何副本中！"
+    success: "&a你已成功离开副本！"
+    fail: "&c离开副本失败！"
 
   kick:
     usage: "&c用法: /sd kick <玩家>"
@@ -241,6 +271,7 @@ command:
       reached: "&c你已经达到死亡次数上限 &e%limit% &c次，已被踢出副本！"
     revive:
       item: "&a你使用了复活道具 &e%item%&a，已在副本中重生！"
+  admin-close: "&c副本 &e%id% &c已被管理员关闭，你已被传送出副本！"
   completion:
     success: "&a恭喜你完成了副本 &e%dungeon%&a！"
     kill-all:

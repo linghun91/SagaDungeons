@@ -130,6 +130,11 @@ public class TemplateManager {
                 template.setWorldPath(config.getString("worldPath"));
             }
 
+            // 加载重生点
+            if (config.contains("spawnLocation")) {
+                template.setSpawnLocation(config.getString("spawnLocation"));
+            }
+
             // 加载复活道具
             ConfigurationSection reviveItemSection = config.getConfigurationSection("reviveItem");
             if (reviveItemSection != null) {
@@ -235,6 +240,11 @@ public class TemplateManager {
         // 保存世界路径
         if (template.hasWorldPath()) {
             config.set("worldPath", template.getWorldPath());
+        }
+
+        // 保存重生点
+        if (template.hasSpawnLocation()) {
+            config.set("spawnLocation", template.getSpawnLocation());
         }
 
         // 保存复活道具

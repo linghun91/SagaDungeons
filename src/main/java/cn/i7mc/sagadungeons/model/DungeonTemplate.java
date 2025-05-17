@@ -26,6 +26,7 @@ public class DungeonTemplate {
     private String reviveItemName;
     private String serializedReviveItem; // 序列化复活道具
     private String worldPath; // 世界文件路径
+    private String spawnLocation; // 重生点位置
 
     // 条件启用状态
     private boolean moneyEnabled = true;
@@ -314,6 +315,30 @@ public class DungeonTemplate {
      */
     public boolean hasWorldPath() {
         return worldPath != null && !worldPath.isEmpty();
+    }
+
+    /**
+     * 获取重生点位置
+     * @return 重生点位置字符串
+     */
+    public String getSpawnLocation() {
+        return spawnLocation;
+    }
+
+    /**
+     * 设置重生点位置
+     * @param spawnLocation 重生点位置字符串
+     */
+    public void setSpawnLocation(String spawnLocation) {
+        this.spawnLocation = spawnLocation;
+    }
+
+    /**
+     * 检查是否有指定重生点
+     * @return 是否有指定重生点
+     */
+    public boolean hasSpawnLocation() {
+        return spawnLocation != null && !spawnLocation.isEmpty();
     }
 
     /**

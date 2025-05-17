@@ -39,13 +39,6 @@ public class SagaDungeons extends JavaPlugin {
         // 保存插件实例
         instance = this;
 
-        // 输出启动信息
-        getLogger().info("§a========================================");
-        getLogger().info("§6SagaDungeons §a副本系统 §b已启动");
-        getLogger().info("§a版本: §e" + getDescription().getVersion());
-        getLogger().info("§a作者: §elinghun91");
-        getLogger().info("§a========================================");
-
         // 初始化配置管理器
         configManager = new ConfigManager(this);
         configManager.loadConfigs();
@@ -77,11 +70,7 @@ public class SagaDungeons extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        // 输出关闭信息
-        getLogger().info("§a========================================");
-        getLogger().info("§6SagaDungeons §c副本系统 §b已关闭");
-        getLogger().info("§a========================================");
-
+        
         // 保存数据
         if (dungeonManager != null) {
             dungeonManager.saveAllData();

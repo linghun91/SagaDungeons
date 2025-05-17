@@ -28,26 +28,26 @@ public class BukkitFileUtil {
         if (!source.exists() || !source.isDirectory()) {
             return false;
         }
-        
+
         // 创建目标文件夹
         if (!target.exists()) {
             target.mkdirs();
         }
-        
+
         // 获取源文件夹中的所有文件和子文件夹
         File[] files = source.listFiles();
         if (files == null) {
             return true;
         }
-        
+
         // 计算总文件数
         int totalFiles = countFiles(source);
         int copiedFiles = 0;
-        
+
         // 复制每个文件和子文件夹
         for (File file : files) {
             File destFile = new File(target, file.getName());
-            
+
             if (file.isDirectory()) {
                 // 递归复制子文件夹
                 copyDirectory(file, destFile, null);
@@ -56,7 +56,7 @@ public class BukkitFileUtil {
                 try {
                     Files.copy(file.toPath(), destFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
                     copiedFiles++;
-                    
+
                     // 更新进度
                     if (progressCallback != null && totalFiles > 0) {
                         double progress = (double) copiedFiles / totalFiles;
@@ -68,7 +68,7 @@ public class BukkitFileUtil {
                 }
             }
         }
-        
+
         return true;
     }
 
@@ -82,7 +82,7 @@ public class BukkitFileUtil {
     public static void copyDirectoryAsync(File source, File target, Consumer<Double> progressCallback, Consumer<Boolean> completionCallback) {
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             boolean success = copyDirectory(source, target, progressCallback);
-            
+
             // 在主线程中执行完成回调
             Bukkit.getScheduler().runTask(plugin, () -> {
                 if (completionCallback != null) {
@@ -101,7 +101,7 @@ public class BukkitFileUtil {
         if (!directory.exists()) {
             return true;
         }
-        
+
         // 删除所有文件和子文件夹
         File[] files = directory.listFiles();
         if (files != null) {
@@ -109,13 +109,20 @@ public class BukkitFileUtil {
                 if (file.isDirectory()) {
                     deleteDirectory(file);
                 } else {
-                    file.delete();
+                    // 尝试删除文件，如果失败则记录错误
+                    if (!file.delete()) {
+                        plugin.getLogger().warning("无法删除文件: " + file.getAbsolutePath());
+                    }
                 }
             }
         }
-        
+
         // 删除文件夹本身
-        return directory.delete();
+        boolean deleted = directory.delete();
+        if (!deleted) {
+            plugin.getLogger().warning("无法删除文件夹: " + directory.getAbsolutePath());
+        }
+        return deleted;
     }
 
     /**
@@ -126,7 +133,7 @@ public class BukkitFileUtil {
     public static void deleteDirectoryAsync(File directory, Consumer<Boolean> completionCallback) {
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             boolean success = deleteDirectory(directory);
-            
+
             // 在主线程中执行完成回调
             Bukkit.getScheduler().runTask(plugin, () -> {
                 if (completionCallback != null) {
@@ -136,6 +143,8 @@ public class BukkitFileUtil {
         });
     }
 
+
+
     /**
      * 计算文件夹中的文件数量
      * @param directory 文件夹
@@ -143,7 +152,7 @@ public class BukkitFileUtil {
      */
     public static int countFiles(File directory) {
         int count = 0;
-        
+
         File[] files = directory.listFiles();
         if (files != null) {
             for (File file : files) {
@@ -154,7 +163,7 @@ public class BukkitFileUtil {
                 }
             }
         }
-        
+
         return count;
     }
 }

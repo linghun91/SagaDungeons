@@ -129,7 +129,22 @@ public class DungeonManager {
                     playerData.incrementTotalCreated();
 
                     // 传送玩家到副本
-                    Location spawnLocation = world.getSpawnLocation();
+                    Location spawnLocation;
+
+                    // 检查模板是否有指定重生点
+                    if (template.hasSpawnLocation()) {
+                        // 使用模板中的重生点（不包含世界名）
+                        spawnLocation = cn.i7mc.sagadungeons.util.LocationUtil.stringToLocationWithoutWorld(template.getSpawnLocation(), world);
+
+                        // 如果重生点不可用，使用世界默认出生点
+                        if (spawnLocation == null) {
+                            spawnLocation = world.getSpawnLocation();
+                        }
+                    } else {
+                        // 使用世界默认出生点
+                        spawnLocation = world.getSpawnLocation();
+                    }
+
                     player.teleport(spawnLocation);
 
                     // 启动超时任务
@@ -150,14 +165,35 @@ public class DungeonManager {
         // 获取副本实例
         DungeonInstance instance = activeDungeons.get(dungeonId);
         if (instance == null) {
-            return false;
+            // 尝试直接删除世界文件，可能是副本实例已经被移除但世界文件仍然存在
+            String worldName = plugin.getConfigManager().getWorldPrefix() + dungeonId;
+            plugin.getLogger().info("副本实例不存在，尝试直接删除世界文件: " + worldName);
+
+            // 使用清理残留副本世界的方法删除
+            cleanupDungeonWorld(worldName);
+            return true;
         }
+
+        // 设置副本状态为正在删除
+        instance.setState(DungeonState.DELETING);
 
         // 获取副本世界
         World world = instance.getWorld();
         if (world == null) {
-            return false;
+            // 如果世界为空，尝试通过ID构建世界名称
+            String worldName = plugin.getConfigManager().getWorldPrefix() + dungeonId;
+            plugin.getLogger().info("副本世界为空，尝试通过ID构建世界名称: " + worldName);
+
+            // 从活动副本列表中移除
+            activeDungeons.remove(dungeonId);
+
+            // 使用清理残留副本世界的方法删除
+            cleanupDungeonWorld(worldName);
+            return true;
         }
+
+        // 取消超时任务
+        instance.cancelTimeoutTask();
 
         // 将所有玩家传送出副本
         for (Player player : world.getPlayers()) {
@@ -175,20 +211,50 @@ public class DungeonManager {
 
             // 清除玩家当前副本
             playerData.setCurrentDungeonId(null);
+
+            // 发送消息通知玩家副本被管理员关闭
+            plugin.getConfigManager().getMessageManager().sendMessage(player, "dungeon.admin-close",
+                    plugin.getConfigManager().getMessageManager().createPlaceholders("id", dungeonId));
         }
 
-        // 取消超时任务
-        instance.cancelTimeoutTask();
+        // 立即从活动副本列表中移除，防止玩家加入正在删除的副本
+        activeDungeons.remove(dungeonId);
 
-        // 卸载并删除副本世界
-        plugin.getWorldManager().deleteDungeonWorld(world.getName(), success -> {
-            if (success) {
-                // 从活动副本列表中移除
-                activeDungeons.remove(dungeonId);
-            }
-        });
+        // 延迟10tick后删除世界
+        final String worldName = world.getName();
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            // 使用清理残留副本世界的方法删除
+            cleanupDungeonWorld(worldName);
+        }, 10L);
 
         return true;
+    }
+
+    /**
+     * 清理副本世界
+     * 使用与服务端启动时相同的方法清理副本世界
+     * @param worldName 世界名称
+     */
+    private void cleanupDungeonWorld(String worldName) {
+        // 检查世界是否存在
+        World world = Bukkit.getWorld(worldName);
+        if (world != null) {
+            // 世界存在，使用WorldManager的方法卸载并删除
+            plugin.getWorldManager().deleteDungeonWorld(worldName, success -> {
+                if (success) {
+                    plugin.getLogger().info("成功删除副本世界: " + worldName);
+                } else {
+                    plugin.getLogger().warning("删除副本世界失败: " + worldName);
+                }
+            });
+        } else {
+            // 检查世界文件夹是否存在
+            File worldFolder = new File(Bukkit.getWorldContainer(), worldName);
+            if (worldFolder.exists() && worldFolder.isDirectory()) {
+                // 世界文件夹存在，直接删除
+                plugin.getWorldManager().deleteWorldFolder(worldName, worldFolder);
+            }
+        }
     }
 
     /**
@@ -201,6 +267,13 @@ public class DungeonManager {
         // 获取副本实例
         DungeonInstance instance = activeDungeons.get(dungeonId);
         if (instance == null) {
+            return false;
+        }
+
+        // 检查副本状态
+        if (instance.getState() == DungeonState.DELETING ||
+            instance.getState() == DungeonState.COMPLETED ||
+            instance.getState() == DungeonState.TIMEOUT) {
             return false;
         }
 
@@ -231,7 +304,25 @@ public class DungeonManager {
         playerData.incrementTotalJoined();
 
         // 传送玩家到副本
-        Location spawnLocation = world.getSpawnLocation();
+        Location spawnLocation;
+
+        // 获取模板
+        DungeonTemplate template = plugin.getConfigManager().getTemplateManager().getTemplate(instance.getTemplateName());
+
+        // 检查模板是否有指定重生点
+        if (template != null && template.hasSpawnLocation()) {
+            // 使用模板中的重生点（不包含世界名）
+            spawnLocation = cn.i7mc.sagadungeons.util.LocationUtil.stringToLocationWithoutWorld(template.getSpawnLocation(), world);
+
+            // 如果重生点不可用，使用世界默认出生点
+            if (spawnLocation == null) {
+                spawnLocation = world.getSpawnLocation();
+            }
+        } else {
+            // 使用世界默认出生点
+            spawnLocation = world.getSpawnLocation();
+        }
+
         player.teleport(spawnLocation);
 
         return true;

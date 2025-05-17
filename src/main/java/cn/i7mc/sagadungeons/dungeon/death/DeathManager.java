@@ -5,6 +5,7 @@ import cn.i7mc.sagadungeons.dungeon.DungeonInstance;
 import cn.i7mc.sagadungeons.model.DungeonTemplate;
 import cn.i7mc.sagadungeons.model.PlayerData;
 import cn.i7mc.sagadungeons.util.ItemStackUtil;
+import cn.i7mc.sagadungeons.util.LocationUtil;
 import cn.i7mc.sagadungeons.util.MessageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -267,8 +268,27 @@ public class DeathManager {
             return;
         }
 
-        // 获取世界出生点
-        Location spawnLocation = world.getSpawnLocation();
+        // 获取副本模板
+        DungeonTemplate template = plugin.getConfigManager().getTemplateManager().getTemplate(instance.getTemplateName());
+
+        // 获取重生点
+        final Location spawnLocation;
+
+        // 检查模板是否有指定重生点
+        if (template != null && template.hasSpawnLocation()) {
+            // 使用模板中的重生点（不包含世界名）
+            Location tempLocation = LocationUtil.stringToLocationWithoutWorld(template.getSpawnLocation(), world);
+
+            // 如果重生点不可用，使用世界默认出生点
+            if (tempLocation == null) {
+                spawnLocation = world.getSpawnLocation();
+            } else {
+                spawnLocation = tempLocation;
+            }
+        } else {
+            // 使用世界默认出生点
+            spawnLocation = world.getSpawnLocation();
+        }
 
         // 传送玩家
         Bukkit.getScheduler().runTask(plugin, () -> player.teleport(spawnLocation));

@@ -2,7 +2,6 @@ package cn.i7mc.sagadungeons.command.admin;
 
 import cn.i7mc.sagadungeons.SagaDungeons;
 import cn.i7mc.sagadungeons.command.AbstractCommand;
-import cn.i7mc.sagadungeons.command.CommandManager;
 import cn.i7mc.sagadungeons.util.MessageUtil;
 import org.bukkit.command.CommandSender;
 
@@ -152,6 +151,30 @@ public class AdminCommand extends AbstractCommand {
                 // 执行命令
                 new SetItemCommand(plugin).execute(sender, setItemArgs);
                 break;
+            case "forceclose":
+                // 强制关闭副本
+                if (args.length < 2) {
+                    sendMessage(sender, "command.admin.forceclose.usage");
+                    return;
+                }
+
+                // 创建参数数组
+                String[] forceCloseArgs = new String[args.length - 1];
+                System.arraycopy(args, 1, forceCloseArgs, 0, args.length - 1);
+
+                // 执行命令
+                new ForceCloseCommand(plugin).execute(sender, forceCloseArgs);
+                break;
+            case "setspawn":
+                // 设置副本重生点
+                // 执行命令
+                new SetSpawnCommand(plugin).execute(sender, new String[0]);
+                break;
+            case "gui":
+                // 打开GUI管理界面
+                // 执行命令
+                new GUICommand(plugin).execute(sender, new String[0]);
+                break;
             case "help":
                 // 显示帮助
                 showAdminHelp(sender);
@@ -181,6 +204,9 @@ public class AdminCommand extends AbstractCommand {
             subCommands.add("setworld");
             subCommands.add("copyworld");
             subCommands.add("setitem");
+            subCommands.add("forceclose");
+            subCommands.add("setspawn");
+            subCommands.add("gui");
             subCommands.add("help");
 
             for (String subCommand : subCommands) {
@@ -190,8 +216,13 @@ public class AdminCommand extends AbstractCommand {
             }
         } else if (args.length == 2) {
             // 补全副本ID或模板名称
-            if (args[0].equalsIgnoreCase("delete") || args[0].equalsIgnoreCase("tp")) {
+            if (args[0].equalsIgnoreCase("delete") || args[0].equalsIgnoreCase("tp") || args[0].equalsIgnoreCase("forceclose")) {
                 String arg = args[1].toLowerCase();
+
+                // 如果是forceclose命令，添加"all"选项
+                if (args[0].equalsIgnoreCase("forceclose") && "all".startsWith(arg)) {
+                    completions.add("all");
+                }
 
                 for (String dungeonId : plugin.getDungeonManager().getActiveDungeons().keySet()) {
                     if (dungeonId.toLowerCase().startsWith(arg)) {
@@ -259,6 +290,10 @@ public class AdminCommand extends AbstractCommand {
         MessageUtil.sendMessage(sender, "command.admin.help.setworld");
         MessageUtil.sendMessage(sender, "command.admin.help.copyworld");
         MessageUtil.sendMessage(sender, "command.admin.help.setitem");
+        MessageUtil.sendMessage(sender, "command.admin.help.forceclose");
+        MessageUtil.sendMessage(sender, "command.admin.help.setspawn");
+        MessageUtil.sendMessage(sender, "command.admin.help.gui");
+        MessageUtil.sendMessage(sender, "command.admin.help.help");
 
         // 发送帮助页脚
         MessageUtil.sendMessage(sender, "command.admin.help.footer");

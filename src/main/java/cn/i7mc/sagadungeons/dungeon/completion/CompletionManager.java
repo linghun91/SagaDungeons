@@ -6,7 +6,6 @@ import cn.i7mc.sagadungeons.model.DungeonTemplate;
 import cn.i7mc.sagadungeons.util.LocationUtil;
 import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
@@ -40,20 +39,20 @@ public class CompletionManager {
         if (section == null) {
             return;
         }
-        
+
         List<CompletionCondition> conditions = new ArrayList<>();
-        
+
         // 加载全部击杀条件
         if (section.getBoolean("killAll", false)) {
             conditions.add(new KillAllCondition(plugin));
         }
-        
+
         // 加载到达区域条件
         ConfigurationSection reachAreaSection = section.getConfigurationSection("reachArea");
         if (reachAreaSection != null) {
             String locationString = reachAreaSection.getString("location");
             double radius = reachAreaSection.getDouble("radius", 3.0);
-            
+
             if (locationString != null) {
                 Location location = LocationUtil.stringToLocation(locationString);
                 if (location != null) {
@@ -61,27 +60,27 @@ public class CompletionManager {
                 }
             }
         }
-        
+
         // 加载击杀特定怪物条件
         ConfigurationSection killSpecificSection = section.getConfigurationSection("killSpecific");
         if (killSpecificSection != null) {
             String mobName = killSpecificSection.getString("mobName");
-            
+
             if (mobName != null && !mobName.isEmpty()) {
                 conditions.add(new KillSpecificCondition(plugin, mobName));
             }
         }
-        
+
         // 加载击杀数量条件
         ConfigurationSection killCountSection = section.getConfigurationSection("killCount");
         if (killCountSection != null) {
             int count = killCountSection.getInt("count", 10);
-            
+
             if (count > 0) {
                 conditions.add(new KillCountCondition(plugin, count));
             }
         }
-        
+
         // 保存条件列表
         if (!conditions.isEmpty()) {
             dungeonConditions.put(template.getName(), conditions);
@@ -105,22 +104,22 @@ public class CompletionManager {
     public boolean checkCompletion(DungeonInstance instance) {
         // 获取副本模板名称
         String templateName = instance.getTemplateName();
-        
+
         // 获取通关条件
         List<CompletionCondition> conditions = getCompletionConditions(templateName);
-        
+
         // 如果没有条件，直接返回false
         if (conditions.isEmpty()) {
             return false;
         }
-        
+
         // 检查所有条件
         for (CompletionCondition condition : conditions) {
             if (!condition.check(instance)) {
                 return false;
             }
         }
-        
+
         return true;
     }
 
@@ -135,36 +134,37 @@ public class CompletionManager {
         if (player == null) {
             return;
         }
-        
+
         // 获取玩家所在副本
         String dungeonId = plugin.getDungeonManager().getPlayerData(player.getUniqueId()).getCurrentDungeonId();
         if (dungeonId == null) {
             return;
         }
-        
+
         // 获取副本实例
         DungeonInstance instance = plugin.getDungeonManager().getDungeon(dungeonId);
         if (instance == null) {
             return;
         }
-        
+
         // 获取副本模板名称
         String templateName = instance.getTemplateName();
-        
+
         // 获取通关条件
         List<CompletionCondition> conditions = getCompletionConditions(templateName);
-        
+
         // 处理事件
         for (CompletionCondition condition : conditions) {
             condition.handleEvent(player, event, data);
         }
-        
+
         // 检查是否完成
         if (checkCompletion(instance)) {
             // 设置副本状态为已完成
             instance.setState(cn.i7mc.sagadungeons.dungeon.DungeonState.COMPLETED);
-            
-            // TODO: 处理副本完成事件
+
+            // 注意：副本状态设置为COMPLETED后，DungeonInstance类中的setState方法会自动调用handleCompletion()
+            // 该方法会处理消息发送、奖励发放、玩家统计数据更新和副本删除等操作
         }
     }
 
@@ -174,7 +174,7 @@ public class CompletionManager {
      */
     public void resetCompletionConditions(String templateName) {
         List<CompletionCondition> conditions = getCompletionConditions(templateName);
-        
+
         for (CompletionCondition condition : conditions) {
             condition.reset();
         }
