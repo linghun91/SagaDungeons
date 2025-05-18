@@ -1,6 +1,7 @@
 package cn.i7mc.sagadungeons.hook;
 
 import cn.i7mc.sagadungeons.SagaDungeons;
+import cn.i7mc.sagadungeons.util.DebugUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -10,7 +11,9 @@ import org.bukkit.plugin.Plugin;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 
 /**
@@ -37,12 +40,12 @@ public class MythicMobsHook {
                 Method instMethod = mythicBukkitClass.getMethod("inst");
                 mythicMobsInstance = instMethod.invoke(null);
                 available = true;
-                plugin.getLogger().info("成功连接到MythicMobs插件");
+                DebugUtil.debug("hook.mythicmobs.connected");
             } else {
-                plugin.getLogger().warning("未找到MythicMobs插件或插件未启用");
+                DebugUtil.debug("hook.mythicmobs.not-found");
             }
         } catch (Exception e) {
-            plugin.getLogger().log(Level.SEVERE, "连接MythicMobs插件时出错", e);
+            DebugUtil.debug("hook.mythicmobs.connect-error");
         }
     }
 
@@ -75,7 +78,7 @@ public class MythicMobsHook {
             Method isPresentMethod = optional.getClass().getMethod("isPresent");
             return (boolean) isPresentMethod.invoke(optional);
         } catch (Exception e) {
-            plugin.getLogger().log(Level.SEVERE, "检查怪物类型是否存在时出错", e);
+            DebugUtil.debug("hook.mythicmobs.check-mob-error");
             return false;
         }
     }
@@ -101,7 +104,7 @@ public class MythicMobsHook {
 
             return spawner != null;
         } catch (Exception e) {
-            plugin.getLogger().log(Level.SEVERE, "创建刷怪点时出错", e);
+            DebugUtil.debug("hook.mythicmobs.create-spawner-error");
             return false;
         }
     }
@@ -129,7 +132,7 @@ public class MythicMobsHook {
             Method removeSpawnerMethod = spawnerManager.getClass().getMethod("removeSpawner", spawner.getClass());
             return (boolean) removeSpawnerMethod.invoke(spawnerManager, spawner);
         } catch (Exception e) {
-            plugin.getLogger().log(Level.SEVERE, "移除刷怪点时出错", e);
+            DebugUtil.debug("hook.mythicmobs.remove-spawner-error");
             return false;
         }
     }
@@ -176,7 +179,9 @@ public class MythicMobsHook {
 
             return true;
         } catch (Exception e) {
-            plugin.getLogger().log(Level.SEVERE, "设置刷怪点属性时出错", e);
+            Map<String, String> placeholders = new HashMap<>();
+            placeholders.put("name", name);
+            DebugUtil.debug("hook.mythicmobs.setup-spawner-error", placeholders);
             return false;
         }
     }
@@ -206,7 +211,7 @@ public class MythicMobsHook {
                 mobTypes.add(internalName);
             }
         } catch (Exception e) {
-            plugin.getLogger().log(Level.SEVERE, "获取所有怪物类型时出错", e);
+            DebugUtil.debug("hook.mythicmobs.get-mob-types-error");
         }
 
         return mobTypes;

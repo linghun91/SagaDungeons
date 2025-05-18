@@ -21,6 +21,8 @@ dungeon:
     start: "副本开始计时，ID: %id%，超时时间: %timeout%秒"
     warning: "副本即将超时，ID: %id%，剩余时间: %time%秒"
     expired: "副本已超时，ID: %id%，开始清理"
+  spawner:
+    set: "设置刷怪点，位置（不含世界名）: %location%"
 
 hook:
   vault:
@@ -37,6 +39,14 @@ hook:
     fail: "MythicMobs系统初始化失败: %reason%"
     spawner-create: "创建MythicMobs刷怪点，位置: %location%，类型: %type%"
     spawner-remove: "移除MythicMobs刷怪点，ID: %id%"
+    connected: "成功连接到MythicMobs插件"
+    not-found: "未找到MythicMobs插件或插件未启用"
+    connect-error: "连接MythicMobs插件时出错"
+    check-mob-error: "检查怪物类型是否存在时出错"
+    create-spawner-error: "创建刷怪点时出错"
+    remove-spawner-error: "移除刷怪点时出错"
+    setup-spawner-error: "设置刷怪点属性时出错，刷怪点: %name%"
+    get-mob-types-error: "获取所有怪物类型时出错"
   placeholderapi:
     init: "正在初始化PlaceholderAPI系统"
     success: "PlaceholderAPI系统初始化成功"
@@ -48,16 +58,60 @@ world:
     start: "开始复制世界，源: %source%，目标: %target%"
     progress: "世界复制进度: %progress%%"
     complete: "世界复制完成，耗时: %time%ms"
+    file-copy-start: "复制世界文件从 %source% 到 %target%"
+    file-copy-fail: "复制世界文件失败"
+    file-copy-complete: "世界文件复制完成，耗时: %time%ms"
   load:
     start: "开始加载世界: %world%"
     complete: "世界加载完成: %world%"
+    fail: "世界加载失败: %world%"
   unload:
     start: "开始卸载世界: %world%"
     complete: "世界卸载完成: %world%"
+    success: "成功卸载世界: %world%"
+    fail: "卸载世界失败: %world%"
+    force-attempt: "尝试强制卸载世界: %world%"
+    force-success: "强制卸载世界成功: %world%"
+    force-fail: "强制卸载世界失败: %world%，错误: %error%"
+    method1-fail: "使用World对象卸载世界失败: %world%，错误: %error%"
+    method2-fail: "使用世界名称卸载世界失败: %world%，错误: %error%"
+    actually-unloaded: "世界卸载方法返回false，但世界实际已卸载: %world%"
   delete:
     start: "开始删除世界文件: %world%"
     complete: "世界文件删除完成: %world%"
+    success: "成功删除副本世界文件夹: %world%"
+    fail: "删除副本世界文件夹失败: %world%"
+    not-exist: "副本世界文件夹不存在，无需删除: %world%"
+    in-use: "世界 %world% 仍在使用中，尝试先传送玩家出去"
   cleanup:
     start: "开始清理残留副本世界"
+    start-unloaded: "开始清理未加载的副本世界文件夹"
     found: "发现残留副本世界: %world%"
     complete: "残留副本世界清理完成，共清理: %count%个"
+  error:
+    create: "创建副本世界时发生错误: %message%"
+
+file:
+  copy:
+    fail: "复制文件失败: %file% -> %message%"
+    dir-error: "复制目录时发生错误: %message%"
+    async-error: "异步复制文件夹时发生错误: %message%"
+    skip-session-lock: "跳过复制session.lock文件: %file%"
+    skip-uid-dat: "跳过复制uid.dat文件: %file%"
+    dir-create-fail: "创建目录失败: %dir% -> %message%"
+    async-complete: "异步复制文件夹完成，耗时: %time%ms"
+  delete:
+    fail: "无法删除: %path% -> %message%"
+    dir-error: "删除目录时发生错误: %message%"
+    async-error: "异步删除文件夹时发生错误: %message%"
+    async-complete: "异步删除文件夹完成，耗时: %time%ms"
+  count:
+    error: "计算文件数量时发生错误: %message%"
+    skip-session-lock: "在文件计数中跳过session.lock文件: %file%"
+    skip-uid-dat: "在文件计数中跳过uid.dat文件: %file%"
+
+config:
+  message:
+    lang-not-found: "找不到语言文件: %file%，回退到默认中文"
+    default-not-found: "找不到默认中文语言文件，这可能是插件安装不完整导致的"
+    loaded: "已加载语言: %language%"

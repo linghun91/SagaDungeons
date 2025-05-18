@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Consumer;
 
 /**
@@ -54,14 +56,35 @@ public class BukkitFileUtil {
                             Path targetDir = target.toPath().resolve(source.toPath().relativize(dir));
                             Files.createDirectories(targetDir);
                         } catch (IOException e) {
-                            plugin.getLogger().warning("创建目录失败: " + dir + " -> " + e.getMessage());
+                            Map<String, String> placeholders = new HashMap<>();
+                            placeholders.put("dir", dir.toString());
+                            placeholders.put("message", e.getMessage());
+                            DebugUtil.debug("file.copy.dir-create-fail", placeholders);
                         }
                     });
             }
 
-            // 然后复制所有文件
+            // 然后复制所有文件，忽略session.lock文件
             try (var paths = Files.walk(source.toPath())) {
                 paths.filter(Files::isRegularFile)
+                    .filter(file -> {
+                        String fileName = file.getFileName().toString();
+                        if (fileName.equals("session.lock")) {
+                            // 记录跳过session.lock文件的日志
+                            Map<String, String> placeholders = new HashMap<>();
+                            placeholders.put("file", file.toString());
+                            DebugUtil.debug("file.copy.skip-session-lock", placeholders);
+                            return false;
+                        }
+                        if (fileName.equals("uid.dat")) {
+                            // 记录跳过uid.dat文件的日志
+                            Map<String, String> placeholders = new HashMap<>();
+                            placeholders.put("file", file.toString());
+                            DebugUtil.debug("file.copy.skip-uid-dat", placeholders);
+                            return false;
+                        }
+                        return true;
+                    }) // 忽略session.lock和uid.dat文件
                     .forEach(file -> {
                         try {
                             Path targetFile = target.toPath().resolve(source.toPath().relativize(file));
@@ -88,14 +111,19 @@ public class BukkitFileUtil {
                                 // 忽略无法获取大小的文件
                             }
                         } catch (IOException e) {
-                            plugin.getLogger().warning("复制文件失败: " + file + " -> " + e.getMessage());
+                            Map<String, String> placeholders = new HashMap<>();
+                            placeholders.put("file", file.toString());
+                            placeholders.put("message", e.getMessage());
+                            DebugUtil.debug("file.copy.fail", placeholders);
                         }
                     });
             }
 
             return true;
         } catch (IOException e) {
-            plugin.getLogger().severe("复制目录时发生错误: " + e.getMessage());
+            Map<String, String> placeholders = new HashMap<>();
+            placeholders.put("message", e.getMessage());
+            DebugUtil.debug("file.copy.dir-error", placeholders);
             e.printStackTrace();
             return false;
         }
@@ -134,9 +162,27 @@ public class BukkitFileUtil {
     public static FileCounter countFilesAndSize(File directory) throws IOException {
         final FileCounter counter = new FileCounter();
 
-        // 使用Java 8+的Files.walk方法和Stream API
+        // 使用Java 8+的Files.walk方法和Stream API，忽略session.lock文件
         try (var paths = Files.walk(directory.toPath())) {
             paths.filter(Files::isRegularFile)
+                .filter(path -> {
+                    String fileName = path.getFileName().toString();
+                    if (fileName.equals("session.lock")) {
+                        // 记录跳过session.lock文件的日志
+                        Map<String, String> placeholders = new HashMap<>();
+                        placeholders.put("file", path.toString());
+                        DebugUtil.debug("file.count.skip-session-lock", placeholders);
+                        return false;
+                    }
+                    if (fileName.equals("uid.dat")) {
+                        // 记录跳过uid.dat文件的日志
+                        Map<String, String> placeholders = new HashMap<>();
+                        placeholders.put("file", path.toString());
+                        DebugUtil.debug("file.count.skip-uid-dat", placeholders);
+                        return false;
+                    }
+                    return true;
+                }) // 忽略session.lock和uid.dat文件
                 .forEach(path -> {
                     counter.incrementFileCount();
                     try {
@@ -168,7 +214,9 @@ public class BukkitFileUtil {
 
                 // 计算耗时
                 final long copyTime = System.currentTimeMillis() - startTime;
-                plugin.getLogger().info("异步复制文件夹完成，耗时: " + copyTime + "ms");
+                Map<String, String> placeholders = new HashMap<>();
+                placeholders.put("time", String.valueOf(copyTime));
+                DebugUtil.debug("file.copy.async-complete", placeholders);
 
                 // 在主线程中执行完成回调
                 Bukkit.getScheduler().runTask(plugin, () -> {
@@ -177,7 +225,9 @@ public class BukkitFileUtil {
                     }
                 });
             } catch (Exception e) {
-                plugin.getLogger().severe("异步复制文件夹时发生错误: " + e.getMessage());
+                Map<String, String> placeholders = new HashMap<>();
+                placeholders.put("message", e.getMessage());
+                DebugUtil.debug("file.copy.async-error", placeholders);
                 e.printStackTrace();
 
                 // 在主线程中执行完成回调，报告失败
@@ -208,13 +258,18 @@ public class BukkitFileUtil {
                         try {
                             Files.delete(path);
                         } catch (IOException e) {
-                            plugin.getLogger().warning("无法删除: " + path + " -> " + e.getMessage());
+                            Map<String, String> placeholders = new HashMap<>();
+                            placeholders.put("path", path.toString());
+                            placeholders.put("message", e.getMessage());
+                            DebugUtil.debug("file.delete.fail", placeholders);
                         }
                     });
             }
             return true;
         } catch (IOException e) {
-            plugin.getLogger().severe("删除目录时发生错误: " + e.getMessage());
+            Map<String, String> placeholders = new HashMap<>();
+            placeholders.put("message", e.getMessage());
+            DebugUtil.debug("file.delete.dir-error", placeholders);
             e.printStackTrace();
             return false;
         }
@@ -236,7 +291,9 @@ public class BukkitFileUtil {
 
                 // 计算耗时
                 final long deleteTime = System.currentTimeMillis() - startTime;
-                plugin.getLogger().info("异步删除文件夹完成，耗时: " + deleteTime + "ms");
+                Map<String, String> placeholders = new HashMap<>();
+                placeholders.put("time", String.valueOf(deleteTime));
+                DebugUtil.debug("file.delete.async-complete", placeholders);
 
                 // 在主线程中执行完成回调
                 Bukkit.getScheduler().runTask(plugin, () -> {
@@ -245,7 +302,9 @@ public class BukkitFileUtil {
                     }
                 });
             } catch (Exception e) {
-                plugin.getLogger().severe("异步删除文件夹时发生错误: " + e.getMessage());
+                Map<String, String> placeholders = new HashMap<>();
+                placeholders.put("message", e.getMessage());
+                DebugUtil.debug("file.delete.async-error", placeholders);
                 e.printStackTrace();
 
                 // 在主线程中执行完成回调，报告失败
@@ -265,12 +324,32 @@ public class BukkitFileUtil {
      */
     public static int countFiles(File directory) {
         try {
-            // 使用Files.walk计算文件数量
+            // 使用Files.walk计算文件数量，忽略session.lock文件
             return (int) Files.walk(directory.toPath())
                     .filter(path -> Files.isRegularFile(path))
+                    .filter(path -> {
+                        String fileName = path.getFileName().toString();
+                        if (fileName.equals("session.lock")) {
+                            // 记录跳过session.lock文件的日志
+                            Map<String, String> placeholders = new HashMap<>();
+                            placeholders.put("file", path.toString());
+                            DebugUtil.debug("file.count.skip-session-lock", placeholders);
+                            return false;
+                        }
+                        if (fileName.equals("uid.dat")) {
+                            // 记录跳过uid.dat文件的日志
+                            Map<String, String> placeholders = new HashMap<>();
+                            placeholders.put("file", path.toString());
+                            DebugUtil.debug("file.count.skip-uid-dat", placeholders);
+                            return false;
+                        }
+                        return true;
+                    }) // 忽略session.lock和uid.dat文件
                     .count();
         } catch (IOException e) {
-            plugin.getLogger().warning("计算文件数量时发生错误: " + e.getMessage());
+            Map<String, String> placeholders = new HashMap<>();
+            placeholders.put("message", e.getMessage());
+            DebugUtil.debug("file.count.error", placeholders);
 
             // 回退到旧方法
             int count = 0;
@@ -279,8 +358,18 @@ public class BukkitFileUtil {
                 for (File file : files) {
                     if (file.isDirectory()) {
                         count += countFiles(file);
-                    } else {
+                    } else if (!file.getName().equals("session.lock") && !file.getName().equals("uid.dat")) { // 忽略session.lock和uid.dat文件
                         count++;
+                    } else {
+                        // 记录跳过特殊文件的日志
+                        String fileName = file.getName();
+                        Map<String, String> fileSkipPlaceholders = new HashMap<>();
+                        fileSkipPlaceholders.put("file", file.getAbsolutePath());
+                        if (fileName.equals("session.lock")) {
+                            DebugUtil.debug("file.count.skip-session-lock", fileSkipPlaceholders);
+                        } else if (fileName.equals("uid.dat")) {
+                            DebugUtil.debug("file.count.skip-uid-dat", fileSkipPlaceholders);
+                        }
                     }
                 }
             }

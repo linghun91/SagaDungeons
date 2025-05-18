@@ -30,7 +30,7 @@ public class WorldListener extends AbstractListener {
     @EventHandler
     public void onWorldInit(WorldInitEvent event) {
         World world = event.getWorld();
-        
+
         // 检查是否为副本世界
         if (plugin.getWorldManager().isDungeonWorld(world.getName())) {
             // 设置世界属性
@@ -45,12 +45,12 @@ public class WorldListener extends AbstractListener {
     @EventHandler
     public void onWorldLoad(WorldLoadEvent event) {
         World world = event.getWorld();
-        
+
         // 检查是否为副本世界
         if (plugin.getWorldManager().isDungeonWorld(world.getName())) {
             // 设置世界属性
             world.setAutoSave(false);
-            
+
             // 获取副本ID
             String dungeonId = plugin.getWorldManager().getDungeonIdFromWorldName(world.getName());
             if (dungeonId != null) {
@@ -70,11 +70,12 @@ public class WorldListener extends AbstractListener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onWorldUnload(WorldUnloadEvent event) {
         World world = event.getWorld();
-        
+        String worldName = world.getName();
+
         // 检查是否为副本世界
-        if (plugin.getWorldManager().isDungeonWorld(world.getName())) {
+        if (plugin.getWorldManager().isDungeonWorld(worldName)) {
             // 获取副本ID
-            String dungeonId = plugin.getWorldManager().getDungeonIdFromWorldName(world.getName());
+            String dungeonId = plugin.getWorldManager().getDungeonIdFromWorldName(worldName);
             if (dungeonId != null) {
                 // 获取副本实例
                 if (plugin.getDungeonManager().getDungeon(dungeonId) != null) {
@@ -85,7 +86,13 @@ public class WorldListener extends AbstractListener {
                     }
                 }
             }
-            
+
+            // 检查是否由MultiverseHook触发的卸载
+            if (plugin.getWorldManager().isWorldUnloading(worldName)) {
+                // 允许卸载
+                return;
+            }
+
             // 取消卸载
             event.setCancelled(true);
         }
@@ -98,7 +105,7 @@ public class WorldListener extends AbstractListener {
     @EventHandler
     public void onChunkUnload(ChunkUnloadEvent event) {
         World world = event.getWorld();
-        
+
         // 检查是否为副本世界
         if (plugin.getWorldManager().isDungeonWorld(world.getName())) {
             // 设置不保存

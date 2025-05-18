@@ -1,30 +1,48 @@
 # SagaDungeons 配置文件
-# 版本: 1.0.0
+# SagaDungeons Configuration File
+# 版本: 1.0.9.2
+# Version: 1.0.9.2
 
 # 调试模式
+# Debug Mode
 debug: false
 
+# 语言设置 (可选: zh, en)
+# Language Setting (Options: zh, en)
+lang: en
+
 # 副本设置
+# Dungeon Settings
 dungeon:
   # 副本世界前缀
+  # Dungeon World Prefix
   world-prefix: "sd_"
   # 默认超时时间(秒)
+  # Default Timeout (seconds)
   default-timeout: 3600
   # 副本创建冷却时间(秒)
+  # Dungeon Creation Cooldown (seconds)
   creation-cooldown: 300
   # 是否在服务器启动时清理残留副本
+  # Whether to Clean Up Residual Dungeons on Server Startup
   cleanup-on-startup: true
 
 # 经济设置
+# Economy Settings
 economy:
   # 是否启用Vault经济
+  # Whether to Enable Vault Economy
   use-vault: true
   # 是否启用PlayerPoints点券
+  # Whether to Enable PlayerPoints
   use-playerpoints: true
 
 # 插件集成
+# Plugin Integration
 integration:
   # 是否启用MythicMobs集成
+  # Whether to Enable MythicMobs Integration
   mythicmobs: true
   # 是否启用PlaceholderAPI集成
+  # Whether to Enable PlaceholderAPI Integration
   placeholderapi: true

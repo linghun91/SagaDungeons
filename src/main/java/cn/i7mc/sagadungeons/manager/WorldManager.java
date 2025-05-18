@@ -4,6 +4,7 @@ import cn.i7mc.sagadungeons.SagaDungeons;
 import cn.i7mc.sagadungeons.model.DungeonTemplate;
 import cn.i7mc.sagadungeons.model.PlayerData;
 import cn.i7mc.sagadungeons.util.BukkitFileUtil;
+import cn.i7mc.sagadungeons.util.DebugUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.GameRule;
 import org.bukkit.Location;
@@ -13,7 +14,11 @@ import org.bukkit.entity.Player;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 
 /**
@@ -25,6 +30,7 @@ public class WorldManager {
     private final SagaDungeons plugin;
     private final String worldPrefix;
     private boolean createLock = false; // 创建锁，防止并发创建副本
+    private final Set<String> unloadTracker = new HashSet<>(); // 世界卸载跟踪器，防止递归卸载
 
     public WorldManager(SagaDungeons plugin) {
         this.plugin = plugin;
@@ -144,7 +150,10 @@ public class WorldManager {
                     }
                 }
 
-                plugin.getLogger().info("复制世界文件从 " + sourceDir.getAbsolutePath() + " 到 " + worldsDir.getAbsolutePath());
+                Map<String, String> placeholders = new HashMap<>();
+                placeholders.put("source", sourceDir.getAbsolutePath());
+                placeholders.put("target", worldsDir.getAbsolutePath());
+                DebugUtil.debug("world.copy.file-copy-start", placeholders);
 
                 // 直接在当前异步线程中复制文件，避免嵌套异步任务
                 final long startTime = System.currentTimeMillis();
@@ -152,7 +161,7 @@ public class WorldManager {
                 final long copyTime = System.currentTimeMillis() - startTime;
 
                 if (!success) {
-                    plugin.getLogger().warning("复制世界文件失败");
+                    DebugUtil.debug("world.copy.file-copy-fail");
                     if (completionCallback != null) {
                         Bukkit.getScheduler().runTask(plugin, () -> {
                             createLock = false;
@@ -164,7 +173,9 @@ public class WorldManager {
                     return;
                 }
 
-                plugin.getLogger().info("世界文件复制完成，耗时: " + copyTime + "ms");
+                placeholders.clear();
+                placeholders.put("time", String.valueOf(copyTime));
+                DebugUtil.debug("world.copy.file-copy-complete", placeholders);
 
                 // 在主线程中加载世界
                 Bukkit.getScheduler().runTask(plugin, () -> {
@@ -197,7 +208,10 @@ public class WorldManager {
                             world.setGameRule(GameRule.DO_ENTITY_DROPS, false);
 
                             final long loadTime = System.currentTimeMillis() - loadStartTime;
-                            plugin.getLogger().info("世界加载完成，耗时: " + loadTime + "ms");
+                            Map<String, String> loadPlaceholders = new HashMap<>();
+                            loadPlaceholders.put("time", String.valueOf(loadTime));
+                            loadPlaceholders.put("world", worldName);
+                            DebugUtil.debug("world.load.complete", loadPlaceholders);
 
                             // 调用完成回调
                             if (completionCallback != null) {
@@ -205,7 +219,9 @@ public class WorldManager {
                             }
                         } else {
                             // 加载失败
-                            plugin.getLogger().warning("世界加载失败: " + worldName);
+                            Map<String, String> failPlaceholders = new HashMap<>();
+                            failPlaceholders.put("world", worldName);
+                            DebugUtil.debug("world.load.fail", failPlaceholders);
                             if (completionCallback != null) {
                                 completionCallback.accept(false);
                             }
@@ -216,7 +232,9 @@ public class WorldManager {
                     }
                 });
             } catch (Exception e) {
-                plugin.getLogger().severe("创建副本世界时发生错误: " + e.getMessage());
+                Map<String, String> errorPlaceholders = new HashMap<>();
+                errorPlaceholders.put("message", e.getMessage());
+                DebugUtil.debug("world.error.create", errorPlaceholders);
                 e.printStackTrace();
 
                 // 释放创建锁
@@ -266,15 +284,30 @@ public class WorldManager {
             return;
         }
 
+        // 检查是否已经在卸载中
+        if (unloadTracker.contains(worldName)) {
+            plugin.getLogger().info("世界已经在卸载中: " + worldName);
+            if (completionCallback != null) {
+                completionCallback.accept(false);
+            }
+            return;
+        }
+
+        // 添加到卸载跟踪器
+        unloadTracker.add(worldName);
+
         // 获取世界
         World world = Bukkit.getWorld(worldName);
         if (world == null) {
             // 世界已经卸载，直接删除文件
+            unloadTracker.remove(worldName);
             deleteWorldFolder(worldName, completionCallback);
             return;
         }
 
-        plugin.getLogger().info("正在卸载副本世界: " + worldName);
+        Map<String, String> unloadPlaceholders = new HashMap<>();
+        unloadPlaceholders.put("world", worldName);
+        DebugUtil.debug("world.unload.start", unloadPlaceholders);
 
         // 1. 将所有玩家传送出世界
         teleportPlayersOutOfWorld(world);
@@ -282,19 +315,72 @@ public class WorldManager {
         // 2. 移除所有实体
         removeAllEntities(world);
 
-        // 3. 直接删除文件夹（即使卸载失败，删除文件夹也能成功）
-        File worldDir = new File(Bukkit.getWorldContainer(), worldName);
-        BukkitFileUtil.deleteDirectoryAsync(worldDir, success -> {
-            if (completionCallback != null) {
-                completionCallback.accept(success);
-            }
+        // 3. 保存世界数据
+        try {
+            world.save();
+        } catch (Exception e) {
+        }
 
-            if (success) {
-                plugin.getLogger().info("成功删除副本世界文件夹: " + worldName);
-            } else {
-                plugin.getLogger().warning("删除副本世界文件夹失败: " + worldName);
+        // 4. 延迟20tick后卸载世界
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            try {
+                // 5. 卸载世界
+                boolean unloaded = false;
+
+                // 首先尝试卸载所有区块
+                try {
+                    // 确保所有区块都被保存和卸载
+                    for (org.bukkit.Chunk chunk : world.getLoadedChunks()) {
+                        chunk.unload(true);
+                    }
+                } catch (Exception e) {
+                }
+
+                // 再次尝试移除所有实体
+                removeAllEntities(world);
+
+                // 使用Bukkit API卸载世界
+                try {
+                    unloaded = Bukkit.unloadWorld(world, false);
+                } catch (Exception e) {
+                }
+
+                // 最终检查世界是否已卸载
+                World finalCheckWorld = Bukkit.getWorld(worldName);
+                boolean finalUnloaded = finalCheckWorld == null;
+
+                if (finalUnloaded) {
+                } else {
+                }
+
+                // 6. 再延迟20tick后删除世界文件
+                Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                    // 7. 删除世界文件夹
+                    File worldDir = new File(Bukkit.getWorldContainer(), worldName);
+                    BukkitFileUtil.deleteDirectoryAsync(worldDir, success -> {
+                        // 从卸载跟踪器中移除
+                        unloadTracker.remove(worldName);
+
+                        if (completionCallback != null) {
+                            completionCallback.accept(success);
+                        }
+
+                        Map<String, String> deletePlaceholders = new HashMap<>();
+                        deletePlaceholders.put("world", worldName);
+                        if (success) {
+                            DebugUtil.debug("world.delete.success", deletePlaceholders);
+                        } else {
+                            DebugUtil.debug("world.delete.fail", deletePlaceholders);
+                        }
+                    });
+                }, 20L);
+        } finally {
+            // 确保在异常情况下也能从卸载跟踪器中移除
+            if (unloadTracker.contains(worldName)) {
+                unloadTracker.remove(worldName);
             }
-        });
+        }
+    }, 20L);
     }
 
     /**
@@ -303,29 +389,134 @@ public class WorldManager {
      * @param completionCallback 完成回调
      */
     private void deleteWorldFolder(String worldName, Consumer<Boolean> completionCallback) {
+        // 确保在主线程中执行
+        if (!Bukkit.isPrimaryThread()) {
+            Bukkit.getScheduler().runTask(plugin, () -> deleteWorldFolder(worldName, completionCallback));
+            return;
+        }
+
+        // 检查是否已经在卸载中
+        if (unloadTracker.contains(worldName)) {
+            if (completionCallback != null) {
+                completionCallback.accept(false);
+            }
+            return;
+        }
+
+        // 添加到卸载跟踪器
+        unloadTracker.add(worldName);
+
         File worldDir = new File(Bukkit.getWorldContainer(), worldName);
 
         // 检查文件夹是否存在
         if (!worldDir.exists()) {
-            plugin.getLogger().info("副本世界文件夹不存在，无需删除: " + worldName);
+            Map<String, String> notExistPlaceholders = new HashMap<>();
+            notExistPlaceholders.put("world", worldName);
+            DebugUtil.debug("world.delete.not-exist", notExistPlaceholders);
+            unloadTracker.remove(worldName);
             if (completionCallback != null) {
                 completionCallback.accept(true);
             }
             return;
         }
 
-        // 异步删除文件夹
-        BukkitFileUtil.deleteDirectoryAsync(worldDir, success -> {
-            if (completionCallback != null) {
-                completionCallback.accept(success);
+        // 检查是否有世界正在使用该文件夹
+        World world = Bukkit.getWorld(worldName);
+        if (world != null) {
+            Map<String, String> inUsePlaceholders = new HashMap<>();
+            inUsePlaceholders.put("world", worldName);
+            DebugUtil.debug("world.delete.in-use", inUsePlaceholders);
+
+            // 将所有玩家传送出世界
+            teleportPlayersOutOfWorld(world);
+
+            // 移除所有实体
+            removeAllEntities(world);
+
+            // 保存世界数据
+            try {
+                world.save();
+            } catch (Exception e) {
             }
 
-            if (success) {
-                plugin.getLogger().info("成功删除副本世界文件夹: " + worldName);
-            } else {
-                plugin.getLogger().warning("删除副本世界文件夹失败: " + worldName);
+            // 延迟20tick后卸载世界
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                try {
+                    // 卸载世界
+                    boolean unloaded = false;
+
+                    // 首先尝试卸载所有区块
+                    try {
+                        // 确保所有区块都被保存和卸载
+                        for (org.bukkit.Chunk chunk : world.getLoadedChunks()) {
+                            chunk.unload(true);
+                        }
+                    } catch (Exception e) {
+                    }
+
+                    // 再次尝试移除所有实体
+                    removeAllEntities(world);
+
+                    // 使用Bukkit API卸载世界
+                    try {
+                        unloaded = Bukkit.unloadWorld(world, false);
+                    } catch (Exception e) {
+                    }
+
+                    // 最终检查世界是否已卸载
+                    World finalCheckWorld = Bukkit.getWorld(worldName);
+                    boolean finalUnloaded = finalCheckWorld == null;
+
+                    if (finalUnloaded) {
+                    } else {
+                    }
+
+                // 再延迟20tick后删除世界文件
+                Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                    // 异步删除文件夹
+                    BukkitFileUtil.deleteDirectoryAsync(worldDir, success -> {
+                        // 从卸载跟踪器中移除
+                        unloadTracker.remove(worldName);
+
+                        if (completionCallback != null) {
+                            completionCallback.accept(success);
+                        }
+
+                        Map<String, String> deletePlaceholders = new HashMap<>();
+                        deletePlaceholders.put("world", worldName);
+                        if (success) {
+                            DebugUtil.debug("world.delete.success", deletePlaceholders);
+                        } else {
+                            DebugUtil.debug("world.delete.fail", deletePlaceholders);
+                        }
+                    });
+                }, 20L);
+            } finally {
+                // 确保在异常情况下也能从卸载跟踪器中移除
+                if (unloadTracker.contains(worldName)) {
+                    unloadTracker.remove(worldName);
+                }
             }
-        });
+        }, 20L);
+        } else {
+            // 世界未加载，直接删除文件夹
+            BukkitFileUtil.deleteDirectoryAsync(worldDir, success -> {
+                // 从卸载跟踪器中移除
+                unloadTracker.remove(worldName);
+
+                if (completionCallback != null) {
+                    completionCallback.accept(success);
+                }
+
+                Map<String, String> deletePlaceholders = new HashMap<>();
+                deletePlaceholders.put("world", worldName);
+                if (success) {
+                    DebugUtil.debug("world.delete.success", deletePlaceholders);
+                } else {
+                    DebugUtil.debug("world.delete.fail", deletePlaceholders);
+                }
+            });
+        }
     }
 
     /**
@@ -359,14 +550,18 @@ public class WorldManager {
 
             // 检查是否为副本世界
             if (worldName.startsWith(worldPrefix)) {
-                plugin.getLogger().info("正在卸载副本世界: " + worldName);
+                Map<String, String> unloadPlaceholders = new HashMap<>();
+                unloadPlaceholders.put("world", worldName);
+                DebugUtil.debug("world.unload.start", unloadPlaceholders);
 
                 // 使用deleteDungeonWorld方法卸载和删除世界
                 deleteDungeonWorld(worldName, success -> {
+                    Map<String, String> resultPlaceholders = new HashMap<>();
+                    resultPlaceholders.put("world", worldName);
                     if (success) {
-                        plugin.getLogger().info("成功卸载和删除副本世界: " + worldName);
+                        DebugUtil.debug("world.unload.complete", resultPlaceholders);
                     } else {
-                        plugin.getLogger().severe("卸载和删除副本世界失败: " + worldName);
+                        DebugUtil.debug("world.unload.fail", resultPlaceholders);
                     }
                 });
             }
@@ -383,7 +578,7 @@ public class WorldManager {
             return;
         }
 
-        plugin.getLogger().info("开始清理残留副本世界...");
+        DebugUtil.debug("world.cleanup.start");
 
         // 1. 清理已加载的副本世界
         cleanupLoadedDungeonWorlds();
@@ -391,7 +586,7 @@ public class WorldManager {
         // 2. 清理未加载的副本世界文件夹
         cleanupUnloadedDungeonFolders();
 
-        plugin.getLogger().info("残留副本世界清理完成");
+        DebugUtil.debug("world.cleanup.complete");
     }
 
     /**
@@ -407,7 +602,9 @@ public class WorldManager {
 
             // 检查是否为副本世界
             if (worldName.startsWith(worldPrefix)) {
-                plugin.getLogger().info("清理已加载的副本世界: " + worldName);
+                Map<String, String> cleanupPlaceholders = new HashMap<>();
+                cleanupPlaceholders.put("world", worldName);
+                DebugUtil.debug("world.cleanup.found", cleanupPlaceholders);
                 // 卸载并删除世界
                 deleteDungeonWorld(worldName, null);
             }
@@ -431,7 +628,7 @@ public class WorldManager {
             return;
         }
 
-        plugin.getLogger().info("开始清理未加载的副本世界文件夹...");
+        DebugUtil.debug("world.cleanup.start-unloaded");
         int count = 0;
 
         for (File file : files) {
@@ -447,14 +644,18 @@ public class WorldManager {
                 continue; // 已加载的世界由cleanupLoadedDungeonWorlds处理
             }
 
-            plugin.getLogger().info("清理未加载的副本世界文件夹: " + worldName);
+            Map<String, String> cleanupPlaceholders = new HashMap<>();
+            cleanupPlaceholders.put("world", worldName);
+            DebugUtil.debug("world.cleanup.found", cleanupPlaceholders);
 
             // 直接删除世界文件夹，不尝试加载
             deleteWorldFolder(worldName, file);
             count++;
         }
 
-        plugin.getLogger().info("共清理 " + count + " 个未加载的副本世界文件夹");
+        Map<String, String> completePlaceholders = new HashMap<>();
+        completePlaceholders.put("count", String.valueOf(count));
+        DebugUtil.debug("world.cleanup.complete", completePlaceholders);
     }
 
 
@@ -471,30 +672,116 @@ public class WorldManager {
             return;
         }
 
+        // 检查是否已经在卸载中
+        if (unloadTracker.contains(worldName)) {
+            return;
+        }
+
+        // 添加到卸载跟踪器
+        unloadTracker.add(worldName);
+
         // 检查文件夹是否存在
         if (!worldFolder.exists()) {
-            plugin.getLogger().info("副本世界文件夹不存在，无需删除: " + worldName);
+            Map<String, String> notExistPlaceholders = new HashMap<>();
+            notExistPlaceholders.put("world", worldName);
+            DebugUtil.debug("world.delete.not-exist", notExistPlaceholders);
+            unloadTracker.remove(worldName);
             return;
         }
 
         // 检查是否有世界正在使用该文件夹
         World world = Bukkit.getWorld(worldName);
         if (world != null) {
-            plugin.getLogger().warning("世界 " + worldName + " 仍在使用中，尝试先传送玩家出去");
+            Map<String, String> inUsePlaceholders = new HashMap<>();
+            inUsePlaceholders.put("world", worldName);
+            DebugUtil.debug("world.delete.in-use", inUsePlaceholders);
+
             // 将所有玩家传送出世界
             teleportPlayersOutOfWorld(world);
+
             // 移除所有实体
             removeAllEntities(world);
-        }
 
-        // 异步删除文件夹
-        BukkitFileUtil.deleteDirectoryAsync(worldFolder, success -> {
-            if (success) {
-                plugin.getLogger().info("成功删除副本世界文件夹: " + worldName);
-            } else {
-                plugin.getLogger().warning("删除副本世界文件夹失败: " + worldName);
+            // 保存世界数据
+            try {
+                world.save();
+            } catch (Exception e) {
             }
-        });
+
+            // 延迟20tick后卸载世界
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                try {
+                    // 卸载世界
+                    boolean unloaded = false;
+
+                    // 首先尝试卸载所有区块
+                    try {
+                        // 确保所有区块都被保存和卸载
+                        for (org.bukkit.Chunk chunk : world.getLoadedChunks()) {
+                            chunk.unload(true);
+                        }
+                    } catch (Exception e) {
+                    }
+
+                    // 再次尝试移除所有实体
+                    removeAllEntities(world);
+
+                    // 使用Bukkit API卸载世界
+                    try {
+                        unloaded = Bukkit.unloadWorld(world, false);
+                    } catch (Exception e) {
+                    }
+
+                    // 最终检查世界是否已卸载
+                    World finalCheckWorld = Bukkit.getWorld(worldName);
+                    boolean finalUnloaded = finalCheckWorld == null;
+
+                    Map<String, String> unloadResultPlaceholders = new HashMap<>();
+                    unloadResultPlaceholders.put("world", worldName);
+                    if (finalUnloaded) {
+                        DebugUtil.debug("world.unload.success", unloadResultPlaceholders);
+                    } else {
+                        DebugUtil.debug("world.unload.fail", unloadResultPlaceholders);
+                    }
+
+                    // 再延迟20tick后删除世界文件
+                    Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                        // 异步删除文件夹
+                        BukkitFileUtil.deleteDirectoryAsync(worldFolder, success -> {
+                            // 从卸载跟踪器中移除
+                            unloadTracker.remove(worldName);
+
+                            Map<String, String> deletePlaceholders = new HashMap<>();
+                            deletePlaceholders.put("world", worldName);
+                            if (success) {
+                                DebugUtil.debug("world.delete.success", deletePlaceholders);
+                            } else {
+                                DebugUtil.debug("world.delete.fail", deletePlaceholders);
+                            }
+                        });
+                    }, 20L);
+            } finally {
+                // 确保在异常情况下也能从卸载跟踪器中移除
+                if (unloadTracker.contains(worldName)) {
+                    unloadTracker.remove(worldName);
+                }
+            }
+        }, 20L);
+        } else {
+            // 世界未加载，直接删除文件夹
+            BukkitFileUtil.deleteDirectoryAsync(worldFolder, success -> {
+                // 从卸载跟踪器中移除
+                unloadTracker.remove(worldName);
+
+                Map<String, String> deletePlaceholders = new HashMap<>();
+                deletePlaceholders.put("world", worldName);
+                if (success) {
+                    DebugUtil.debug("world.delete.success", deletePlaceholders);
+                } else {
+                    DebugUtil.debug("world.delete.fail", deletePlaceholders);
+                }
+            });
+        }
     }
 
     /**
@@ -504,6 +791,15 @@ public class WorldManager {
      */
     public boolean isDungeonWorld(String worldName) {
         return worldName != null && worldName.startsWith(worldPrefix);
+    }
+
+    /**
+     * 检查世界是否正在卸载中
+     * @param worldName 世界名称
+     * @return 是否正在卸载
+     */
+    public boolean isWorldUnloading(String worldName) {
+        return unloadTracker.contains(worldName);
     }
 
     /**

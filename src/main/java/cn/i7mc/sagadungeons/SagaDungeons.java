@@ -13,6 +13,8 @@ import cn.i7mc.sagadungeons.manager.MobSpawnerManager;
 import cn.i7mc.sagadungeons.manager.WorldManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.io.File;
+
 /**
  * SagaDungeons插件主类
  * 副本系统主类，负责初始化和管理插件生命周期
@@ -40,6 +42,12 @@ public class SagaDungeons extends JavaPlugin {
     public void onEnable() {
         // 保存插件实例
         instance = this;
+
+        // 保存默认配置文件
+        saveDefaultConfig();
+
+        // 保存所有语言文件
+        saveLanguageFiles();
 
         // 初始化配置管理器
         configManager = new ConfigManager(this);
@@ -71,6 +79,23 @@ public class SagaDungeons extends JavaPlugin {
         if (configManager.isCleanupOnStartup()) {
             worldManager.cleanupRemnantWorlds();
         }
+    }
+
+    /**
+     * 保存所有语言文件
+     */
+    private void saveLanguageFiles() {
+        // 保存中文消息文件
+        if (!new File(getDataFolder(), "messages.yml").exists()) {
+            saveResource("messages.yml", false);
+        }
+
+        // 保存英文消息文件
+        if (!new File(getDataFolder(), "messages_en.yml").exists()) {
+            saveResource("messages_en.yml", false);
+        }
+
+        // 这里可以添加更多语言文件
     }
 
     @Override

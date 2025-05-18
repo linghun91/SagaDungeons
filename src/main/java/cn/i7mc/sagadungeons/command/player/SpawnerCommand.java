@@ -5,6 +5,7 @@ import cn.i7mc.sagadungeons.command.AbstractCommand;
 import cn.i7mc.sagadungeons.dungeon.DungeonInstance;
 import cn.i7mc.sagadungeons.model.DungeonTemplate;
 import cn.i7mc.sagadungeons.model.PlayerData;
+import cn.i7mc.sagadungeons.util.DebugUtil;
 import cn.i7mc.sagadungeons.util.LocationUtil;
 import cn.i7mc.sagadungeons.util.MessageUtil;
 import org.bukkit.Location;
@@ -12,6 +13,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -130,7 +132,9 @@ public class SpawnerCommand extends AbstractCommand {
                 String locationString = LocationUtil.locationToStringWithoutWorld(location);
 
                 // 记录日志
-                plugin.getLogger().info("设置刷怪点，位置（不含世界名）: " + locationString);
+                Map<String, String> debugPlaceholders = new HashMap<>();
+                debugPlaceholders.put("location", locationString);
+                DebugUtil.debug("dungeon.spawner.set", debugPlaceholders);
 
                 // 添加刷怪点到模板
                 template.addMobSpawner(spawnerId, mobType, locationString, cooldown, amount);

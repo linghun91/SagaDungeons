@@ -1,6 +1,7 @@
 package cn.i7mc.sagadungeons.config;
 
 import cn.i7mc.sagadungeons.SagaDungeons;
+import cn.i7mc.sagadungeons.util.DebugUtil;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -12,6 +13,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
 
 /**
  * 消息管理器
@@ -22,6 +24,7 @@ public class MessageManager {
     private final SagaDungeons plugin;
     private FileConfiguration messagesConfig;
     private String prefix;
+    private String language;
 
     public MessageManager(SagaDungeons plugin) {
         this.plugin = plugin;
@@ -31,18 +34,41 @@ public class MessageManager {
      * 加载消息配置文件
      */
     public void loadMessages() {
-        File messagesFile = new File(plugin.getDataFolder(), "messages.yml");
-        
-        // 如果消息文件不存在，则保存默认文件
-        if (!messagesFile.exists()) {
-            plugin.saveResource("messages.yml", false);
+        // 获取配置的语言
+        language = plugin.getConfig().getString("lang", "zh");
+
+        // 确定消息文件名
+        String messageFileName = "messages.yml";
+        if (!"zh".equals(language)) {
+            messageFileName = "messages_" + language + ".yml";
         }
-        
+
+        File messagesFile = new File(plugin.getDataFolder(), messageFileName);
+
+        // 如果消息文件不存在，尝试回退到默认中文
+        if (!messagesFile.exists()) {
+            Map<String, String> placeholders = new HashMap<>();
+            placeholders.put("file", messageFileName);
+            DebugUtil.debug("config.message.lang-not-found", placeholders);
+            language = "zh";
+            messagesFile = new File(plugin.getDataFolder(), "messages.yml");
+
+            // 如果默认中文文件也不存在，这是一个严重错误
+            if (!messagesFile.exists()) {
+                DebugUtil.debug("config.message.default-not-found");
+                return;
+            }
+        }
+
         // 加载消息文件
         messagesConfig = YamlConfiguration.loadConfiguration(messagesFile);
-        
+
         // 获取消息前缀
         prefix = ChatColor.translateAlternateColorCodes('&', messagesConfig.getString("prefix", "&6[&bSagaDungeons&6] "));
+
+        Map<String, String> placeholders = new HashMap<>();
+        placeholders.put("language", language);
+        DebugUtil.debug("config.message.loaded", placeholders);
     }
 
     /**
@@ -75,12 +101,12 @@ public class MessageManager {
      */
     public String getMessage(String path, Map<String, String> placeholders) {
         String message = getMessage(path);
-        
+
         // 替换变量
         for (Map.Entry<String, String> entry : placeholders.entrySet()) {
             message = message.replace("%" + entry.getKey() + "%", entry.getValue());
         }
-        
+
         return message;
     }
 
@@ -156,5 +182,13 @@ public class MessageManager {
         placeholders.put(key2, value2);
         placeholders.put(key3, value3);
         return placeholders;
+    }
+
+    /**
+     * 获取当前语言
+     * @return 当前语言代码
+     */
+    public String getLanguage() {
+        return language;
     }
 }

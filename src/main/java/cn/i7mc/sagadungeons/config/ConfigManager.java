@@ -2,12 +2,6 @@ package cn.i7mc.sagadungeons.config;
 
 import cn.i7mc.sagadungeons.SagaDungeons;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 
 /**
  * 配置管理器
@@ -20,6 +14,7 @@ public class ConfigManager {
     private MessageManager messageManager;
     private TemplateManager templateManager;
     private boolean debug;
+    private String language;
 
     public ConfigManager(SagaDungeons plugin) {
         this.plugin = plugin;
@@ -34,6 +29,7 @@ public class ConfigManager {
         plugin.reloadConfig();
         config = plugin.getConfig();
         debug = config.getBoolean("debug", false);
+        language = config.getString("lang", "zh");
 
         // 加载消息配置文件
         messageManager = new MessageManager(plugin);
@@ -52,6 +48,7 @@ public class ConfigManager {
         plugin.reloadConfig();
         config = plugin.getConfig();
         debug = config.getBoolean("debug", false);
+        language = config.getString("lang", "zh");
 
         // 重载消息配置文件
         messageManager.loadMessages();
@@ -97,6 +94,14 @@ public class ConfigManager {
      */
     public boolean isDebugEnabled() {
         return debug;
+    }
+
+    /**
+     * 获取当前语言设置
+     * @return 当前语言代码
+     */
+    public String getLanguage() {
+        return language;
     }
 
     /**
