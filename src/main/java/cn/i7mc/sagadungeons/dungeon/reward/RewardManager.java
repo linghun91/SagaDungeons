@@ -92,7 +92,6 @@ public class RewardManager {
                         Material material = Material.valueOf(materialName.toUpperCase());
                         rewards.add(new ItemReward(plugin, material, amount, name, lore));
                     } catch (IllegalArgumentException e) {
-                        plugin.getLogger().warning("Invalid material name: " + materialName);
                     }
                 }
             }

@@ -277,7 +277,6 @@ public class TemplateManager {
         try {
             config.save(configFile);
         } catch (IOException e) {
-            plugin.getLogger().severe("Failed to save template: " + template.getName());
             e.printStackTrace();
         }
     }

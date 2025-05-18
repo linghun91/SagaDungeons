@@ -4,10 +4,11 @@
 dungeon:
   create:
     start: "开始创建副本，模板: %template%"
+    locked: "副本创建被锁定，另一个副本正在创建中"
     world-copy: "正在复制世界，源: %source%，目标: %target%"
     world-copy-complete: "世界复制完成，耗时: %time%ms"
     world-load: "正在加载副本世界: %world%"
-    world-load-complete: "副本世界加载完成: %world%"
+    world-load-complete: "副本世界加载完成: %world%，耗时: %time%ms"
     instance-create: "创建副本实例，ID: %id%，所有者: %owner%"
     complete: "副本创建完成，ID: %id%，所有者: %owner%，世界: %world%"
   delete:

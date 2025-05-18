@@ -87,6 +87,12 @@ public class DungeonManager {
             return false;
         }
 
+        // 检查是否有其他副本正在创建中
+        if (!plugin.getWorldManager().canCreate()) {
+            plugin.getConfigManager().getMessageManager().sendMessage(player, "dungeon.creation.locked");
+            return false;
+        }
+
         // 获取模板
         DungeonTemplate template = plugin.getConfigManager().getTemplateManager().getTemplate(templateName);
 

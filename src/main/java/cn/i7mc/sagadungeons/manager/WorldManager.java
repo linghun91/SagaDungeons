@@ -5,6 +5,7 @@ import cn.i7mc.sagadungeons.model.DungeonTemplate;
 import cn.i7mc.sagadungeons.model.PlayerData;
 import cn.i7mc.sagadungeons.util.BukkitFileUtil;
 import org.bukkit.Bukkit;
+import org.bukkit.GameRule;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.WorldCreator;
@@ -23,10 +24,19 @@ public class WorldManager {
 
     private final SagaDungeons plugin;
     private final String worldPrefix;
+    private boolean createLock = false; // 创建锁，防止并发创建副本
 
     public WorldManager(SagaDungeons plugin) {
         this.plugin = plugin;
         this.worldPrefix = plugin.getConfigManager().getWorldPrefix();
+    }
+
+    /**
+     * 检查是否可以创建副本
+     * @return 是否可以创建
+     */
+    public boolean canCreate() {
+        return !createLock;
     }
 
     /**
@@ -37,107 +47,186 @@ public class WorldManager {
      * @param completionCallback 完成回调
      */
     public void createDungeonWorld(String templateName, String dungeonId, Consumer<Double> progressCallback, Consumer<Boolean> completionCallback) {
-        // 获取模板
-        DungeonTemplate template = plugin.getConfigManager().getTemplateManager().getTemplate(templateName);
-        if (template == null) {
+        // 检查创建锁
+        if (createLock) {
+            plugin.getLogger().warning("另一个副本正在创建中，请稍后再试");
             if (completionCallback != null) {
                 completionCallback.accept(false);
             }
             return;
         }
 
-        // 获取模板目录
-        File templateDir;
+        // 设置创建锁
+        createLock = true;
 
-        // 检查是否有指定的世界路径
-        if (template.hasWorldPath()) {
-            // 使用指定的世界路径
-            templateDir = new File(plugin.getDataFolder(), template.getWorldPath());
-        } else {
-            // 使用默认模板目录
-            templateDir = plugin.getConfigManager().getTemplateManager().getTemplateDirectory(templateName);
-        }
-
-        // 检查模板目录是否存在
-        if (!templateDir.exists() || !templateDir.isDirectory()) {
-            plugin.getLogger().warning("模板目录不存在: " + templateDir.getAbsolutePath());
-            if (completionCallback != null) {
-                completionCallback.accept(false);
-            }
-            return;
-        }
-
-        // 创建副本世界名称
-        String worldName = worldPrefix + dungeonId;
-
-        // 获取服务器世界目录
-        // Bukkit.getWorldContainer()返回的是服务器主目录
-        // 我们需要在服务器主目录下创建一个与世界名称相同的目录
-        File worldsDir = new File(Bukkit.getWorldContainer(), worldName);
-
-        // 确保目标目录存在
-        if (!worldsDir.exists()) {
-            worldsDir.mkdirs();
-        }
-
-        // 检查源目录结构
-        File sourceDir;
-        File regionDir = new File(templateDir, "region");
-
-        if (regionDir.exists() && regionDir.isDirectory()) {
-            // 如果源目录包含region文件夹，说明源目录就是世界目录
-            // 直接使用源目录
-            sourceDir = templateDir;
-        } else {
-            // 如果源目录不包含region文件夹，可能是因为region文件夹在源目录的world子目录中
-            File worldSubDir = new File(templateDir, "world");
-            File worldRegionDir = new File(worldSubDir, "region");
-
-            if (worldSubDir.exists() && worldSubDir.isDirectory() && worldRegionDir.exists() && worldRegionDir.isDirectory()) {
-                // 使用world子目录作为源目录
-                sourceDir = worldSubDir;
-            } else {
-                // 找不到有效的世界目录
-                plugin.getLogger().warning("找不到有效的世界目录: " + templateDir.getAbsolutePath());
-                if (completionCallback != null) {
-                    completionCallback.accept(false);
-                }
-                return;
-            }
-        }
-
-        plugin.getLogger().info("复制世界文件从 " + sourceDir.getAbsolutePath() + " 到 " + worldsDir.getAbsolutePath());
-
-        // 异步复制世界文件
-        BukkitFileUtil.copyDirectoryAsync(sourceDir, worldsDir, progressCallback, success -> {
-            if (!success) {
-                if (completionCallback != null) {
-                    completionCallback.accept(false);
-                }
-                return;
-            }
-
-            // 在主线程中加载世界
-            Bukkit.getScheduler().runTask(plugin, () -> {
-                // 创建并加载世界
-                WorldCreator creator = new WorldCreator(worldName);
-                World world = creator.createWorld();
-
-                if (world != null) {
-                    // 设置世界属性
-                    world.setAutoSave(false);
-
-                    // 调用完成回调
+        // 在异步线程中执行世界复制操作
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                // 获取模板
+                DungeonTemplate template = plugin.getConfigManager().getTemplateManager().getTemplate(templateName);
+                if (template == null) {
+                    plugin.getLogger().warning("找不到模板: " + templateName);
                     if (completionCallback != null) {
-                        completionCallback.accept(true);
+                        Bukkit.getScheduler().runTask(plugin, () -> {
+                            createLock = false;
+                            completionCallback.accept(false);
+                        });
+                    } else {
+                        Bukkit.getScheduler().runTask(plugin, () -> createLock = false);
                     }
+                    return;
+                }
+
+                // 获取模板目录
+                File templateDir;
+
+                // 检查是否有指定的世界路径
+                if (template.hasWorldPath()) {
+                    // 使用指定的世界路径
+                    templateDir = new File(plugin.getDataFolder(), template.getWorldPath());
                 } else {
-                    // 加载失败
+                    // 使用默认模板目录
+                    templateDir = plugin.getConfigManager().getTemplateManager().getTemplateDirectory(templateName);
+                }
+
+                // 检查模板目录是否存在
+                if (!templateDir.exists() || !templateDir.isDirectory()) {
+                    plugin.getLogger().warning("模板目录不存在: " + templateDir.getAbsolutePath());
                     if (completionCallback != null) {
-                        completionCallback.accept(false);
+                        Bukkit.getScheduler().runTask(plugin, () -> {
+                            createLock = false;
+                            completionCallback.accept(false);
+                        });
+                    } else {
+                        Bukkit.getScheduler().runTask(plugin, () -> createLock = false);
+                    }
+                    return;
+                }
+
+                // 创建副本世界名称
+                String worldName = worldPrefix + dungeonId;
+
+                // 获取服务器世界目录
+                File worldsDir = new File(Bukkit.getWorldContainer(), worldName);
+
+                // 确保目标目录存在
+                if (!worldsDir.exists()) {
+                    worldsDir.mkdirs();
+                }
+
+                // 检查源目录结构
+                File sourceDir;
+                File regionDir = new File(templateDir, "region");
+
+                if (regionDir.exists() && regionDir.isDirectory()) {
+                    // 如果源目录包含region文件夹，说明源目录就是世界目录
+                    sourceDir = templateDir;
+                } else {
+                    // 如果源目录不包含region文件夹，可能是因为region文件夹在源目录的world子目录中
+                    File worldSubDir = new File(templateDir, "world");
+                    File worldRegionDir = new File(worldSubDir, "region");
+
+                    if (worldSubDir.exists() && worldSubDir.isDirectory() && worldRegionDir.exists() && worldRegionDir.isDirectory()) {
+                        // 使用world子目录作为源目录
+                        sourceDir = worldSubDir;
+                    } else {
+                        // 找不到有效的世界目录
+                        plugin.getLogger().warning("找不到有效的世界目录: " + templateDir.getAbsolutePath());
+                        if (completionCallback != null) {
+                            Bukkit.getScheduler().runTask(plugin, () -> {
+                                createLock = false;
+                                completionCallback.accept(false);
+                            });
+                        } else {
+                            Bukkit.getScheduler().runTask(plugin, () -> createLock = false);
+                        }
+                        return;
                     }
                 }
-            });
+
+                plugin.getLogger().info("复制世界文件从 " + sourceDir.getAbsolutePath() + " 到 " + worldsDir.getAbsolutePath());
+
+                // 直接在当前异步线程中复制文件，避免嵌套异步任务
+                final long startTime = System.currentTimeMillis();
+                boolean success = BukkitFileUtil.copyDirectory(sourceDir, worldsDir, progressCallback);
+                final long copyTime = System.currentTimeMillis() - startTime;
+
+                if (!success) {
+                    plugin.getLogger().warning("复制世界文件失败");
+                    if (completionCallback != null) {
+                        Bukkit.getScheduler().runTask(plugin, () -> {
+                            createLock = false;
+                            completionCallback.accept(false);
+                        });
+                    } else {
+                        Bukkit.getScheduler().runTask(plugin, () -> createLock = false);
+                    }
+                    return;
+                }
+
+                plugin.getLogger().info("世界文件复制完成，耗时: " + copyTime + "ms");
+
+                // 在主线程中加载世界
+                Bukkit.getScheduler().runTask(plugin, () -> {
+                    try {
+                        final long loadStartTime = System.currentTimeMillis();
+
+                        // 创建并加载世界
+                        WorldCreator creator = new WorldCreator(worldName);
+                        // 设置世界类型为FLAT，减少生成开销
+                        creator.generateStructures(false);
+                        // 设置环境类型
+                        creator.environment(World.Environment.NORMAL);
+                        // 设置不保持出生点加载
+                        creator.keepSpawnLoaded(net.kyori.adventure.util.TriState.FALSE);
+
+                        World world = creator.createWorld();
+
+                        if (world != null) {
+                            // 设置世界属性
+                            world.setAutoSave(false);
+                            world.setKeepSpawnInMemory(false);
+
+                            // 设置游戏规则 - 使用最新的GameRule API
+                            world.setGameRule(GameRule.KEEP_INVENTORY, true);
+                            world.setGameRule(GameRule.DO_MOB_SPAWNING, false);
+                            world.setGameRule(GameRule.DO_WEATHER_CYCLE, false);
+                            world.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, false);
+                            world.setGameRule(GameRule.DO_FIRE_TICK, false);
+                            world.setGameRule(GameRule.RANDOM_TICK_SPEED, 0);
+                            world.setGameRule(GameRule.DO_ENTITY_DROPS, false);
+
+                            final long loadTime = System.currentTimeMillis() - loadStartTime;
+                            plugin.getLogger().info("世界加载完成，耗时: " + loadTime + "ms");
+
+                            // 调用完成回调
+                            if (completionCallback != null) {
+                                completionCallback.accept(true);
+                            }
+                        } else {
+                            // 加载失败
+                            plugin.getLogger().warning("世界加载失败: " + worldName);
+                            if (completionCallback != null) {
+                                completionCallback.accept(false);
+                            }
+                        }
+                    } finally {
+                        // 释放创建锁
+                        createLock = false;
+                    }
+                });
+            } catch (Exception e) {
+                plugin.getLogger().severe("创建副本世界时发生错误: " + e.getMessage());
+                e.printStackTrace();
+
+                // 释放创建锁
+                Bukkit.getScheduler().runTask(plugin, () -> createLock = false);
+
+                // 调用完成回调
+                if (completionCallback != null) {
+                    Bukkit.getScheduler().runTask(plugin, () -> completionCallback.accept(false));
+                }
+            }
         });
     }
 
@@ -181,20 +270,21 @@ public class WorldManager {
         World world = Bukkit.getWorld(worldName);
         if (world == null) {
             // 世界已经卸载，直接删除文件
-            File worldDir = new File(Bukkit.getWorldContainer(), worldName);
+            deleteWorldFolder(worldName, completionCallback);
+            return;
+        }
 
-            // 检查文件夹是否存在
-            if (!worldDir.exists()) {
-                plugin.getLogger().info("副本世界文件夹不存在，无需删除: " + worldName);
-                if (completionCallback != null) {
-                    completionCallback.accept(true);
-                }
-                return;
-            }
+        plugin.getLogger().info("正在卸载副本世界: " + worldName);
 
-            // 直接在主线程中删除文件夹
-            boolean success = BukkitFileUtil.deleteDirectory(worldDir);
+        // 1. 将所有玩家传送出世界
+        teleportPlayersOutOfWorld(world);
 
+        // 2. 移除所有实体
+        removeAllEntities(world);
+
+        // 3. 直接删除文件夹（即使卸载失败，删除文件夹也能成功）
+        File worldDir = new File(Bukkit.getWorldContainer(), worldName);
+        BukkitFileUtil.deleteDirectoryAsync(worldDir, success -> {
             if (completionCallback != null) {
                 completionCallback.accept(success);
             }
@@ -204,55 +294,57 @@ public class WorldManager {
             } else {
                 plugin.getLogger().warning("删除副本世界文件夹失败: " + worldName);
             }
+        });
+    }
 
+    /**
+     * 删除世界文件夹
+     * @param worldName 世界名称
+     * @param completionCallback 完成回调
+     */
+    private void deleteWorldFolder(String worldName, Consumer<Boolean> completionCallback) {
+        File worldDir = new File(Bukkit.getWorldContainer(), worldName);
+
+        // 检查文件夹是否存在
+        if (!worldDir.exists()) {
+            plugin.getLogger().info("副本世界文件夹不存在，无需删除: " + worldName);
+            if (completionCallback != null) {
+                completionCallback.accept(true);
+            }
             return;
         }
 
-        // 1. 将所有玩家传送出世界
-        teleportPlayersOutOfWorld(world);
-
-        // 2. 卸载世界 - 使用save=false参数，避免保存世界文件
-        plugin.getLogger().info("正在卸载副本世界: " + worldName);
-        boolean unloaded = Bukkit.unloadWorld(world, false);
-
-        if (unloaded) {
-            plugin.getLogger().info("成功卸载副本世界: " + worldName);
-
-            // 3. 删除世界文件 - 延迟5tick执行，确保世界完全卸载
-            Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                File worldDir = new File(Bukkit.getWorldContainer(), worldName);
-
-                // 检查文件夹是否存在
-                if (!worldDir.exists()) {
-                    plugin.getLogger().info("副本世界文件夹不存在，无需删除: " + worldName);
-                    if (completionCallback != null) {
-                        completionCallback.accept(true);
-                    }
-                    return;
-                }
-
-                // 直接在主线程中删除文件夹
-                boolean success = BukkitFileUtil.deleteDirectory(worldDir);
-
-                if (completionCallback != null) {
-                    completionCallback.accept(success);
-                }
-
-                if (success) {
-                    plugin.getLogger().info("成功删除副本世界文件夹: " + worldName);
-                } else {
-                    plugin.getLogger().warning("删除副本世界文件夹失败: " + worldName);
-                }
-            }, 5L);
-        } else {
-            // 卸载失败
-            plugin.getLogger().warning("卸载副本世界失败: " + worldName);
-
+        // 异步删除文件夹
+        BukkitFileUtil.deleteDirectoryAsync(worldDir, success -> {
             if (completionCallback != null) {
-                completionCallback.accept(false);
+                completionCallback.accept(success);
             }
+
+            if (success) {
+                plugin.getLogger().info("成功删除副本世界文件夹: " + worldName);
+            } else {
+                plugin.getLogger().warning("删除副本世界文件夹失败: " + worldName);
+            }
+        });
+    }
+
+    /**
+     * 移除世界中的所有实体
+     * @param world 要移除实体的世界
+     */
+    private void removeAllEntities(World world) {
+        // 获取世界中的所有实体
+        for (org.bukkit.entity.Entity entity : world.getEntities()) {
+            // 跳过玩家
+            if (entity instanceof Player) {
+                continue;
+            }
+            // 移除实体
+            entity.remove();
         }
     }
+
+
 
     /**
      * 卸载所有副本世界
@@ -267,10 +359,16 @@ public class WorldManager {
 
             // 检查是否为副本世界
             if (worldName.startsWith(worldPrefix)) {
-                // 将所有玩家传送出世界
-                teleportPlayersOutOfWorld(world);
-                // 卸载世界
-                Bukkit.unloadWorld(world, false);
+                plugin.getLogger().info("正在卸载副本世界: " + worldName);
+
+                // 使用deleteDungeonWorld方法卸载和删除世界
+                deleteDungeonWorld(worldName, success -> {
+                    if (success) {
+                        plugin.getLogger().info("成功卸载和删除副本世界: " + worldName);
+                    } else {
+                        plugin.getLogger().severe("卸载和删除副本世界失败: " + worldName);
+                    }
+                });
             }
         }
     }
@@ -379,26 +477,24 @@ public class WorldManager {
             return;
         }
 
-        // 延迟5tick执行删除操作，确保文件不被锁定
-        Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            // 直接在主线程中删除文件夹
-            boolean success = BukkitFileUtil.deleteDirectory(worldFolder);
+        // 检查是否有世界正在使用该文件夹
+        World world = Bukkit.getWorld(worldName);
+        if (world != null) {
+            plugin.getLogger().warning("世界 " + worldName + " 仍在使用中，尝试先传送玩家出去");
+            // 将所有玩家传送出世界
+            teleportPlayersOutOfWorld(world);
+            // 移除所有实体
+            removeAllEntities(world);
+        }
 
+        // 异步删除文件夹
+        BukkitFileUtil.deleteDirectoryAsync(worldFolder, success -> {
             if (success) {
                 plugin.getLogger().info("成功删除副本世界文件夹: " + worldName);
             } else {
                 plugin.getLogger().warning("删除副本世界文件夹失败: " + worldName);
-
-                // 记录文件夹内容，帮助调试
-                File[] files = worldFolder.listFiles();
-                if (files != null) {
-                    plugin.getLogger().warning("文件夹 " + worldName + " 包含 " + files.length + " 个文件/文件夹");
-                    for (File file : files) {
-                        plugin.getLogger().warning(" - " + file.getName() + (file.isDirectory() ? " (文件夹)" : " (文件)"));
-                    }
-                }
             }
-        }, 5L);
+        });
     }
 
     /**

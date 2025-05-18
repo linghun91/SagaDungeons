@@ -84,7 +84,6 @@ public class RequirementManager {
                             Material material = Material.valueOf(materialName.toUpperCase());
                             template.addRequirement(new ItemRequirement(plugin, material, amount, displayName));
                         } catch (IllegalArgumentException e) {
-                            plugin.getLogger().warning("Invalid material name: " + materialName);
                         }
                     }
                 }
