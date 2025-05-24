@@ -282,7 +282,7 @@ command:
       item: "&aYou used a revive item &e%item%&a and have respawned in the dungeon!"
     admin-close: "&cDungeon &e%id% &cwas closed by an admin, you have been teleported out!"
   completion:
-    success: "&aCongratulations, you completed the dungeon &e%dungeon%&a!"
+    success: "&aCongratulations, you completed the dungeon &e%dungeon%&a! Time taken: &b%time%"
     kill-all:
       description: "&7Kill all monsters in the dungeon"
       progress: "&7Killed: &e%killed%/%total%"
@@ -311,3 +311,7 @@ command:
       description: "&aItem: &e%item% x%amount%"
     command:
       description: "&aSpecial Reward"
+    time:
+      header: "&6=== Time Rewards ==="
+      description: "&aSpeed Completion Reward (Time taken: &e%time%&a)"
+      footer: "&6==============="

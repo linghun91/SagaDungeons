@@ -178,14 +178,22 @@ public class DungeonInstance {
             return;
         }
 
+        // 计算完成时间
+        long completionTime = System.currentTimeMillis();
+        int completionTimeSeconds = (int) ((completionTime - creationTime) / 1000);
+
         // 发送完成消息
         for (Player player : world.getPlayers()) {
             // 发送完成消息
             MessageUtil.sendMessage(player, "dungeon.completion.success",
-                    MessageUtil.createPlaceholders("dungeon", displayName));
+                    MessageUtil.createPlaceholders("dungeon", displayName,
+                            "time", cn.i7mc.sagadungeons.util.TimeUtil.formatTimeShort(completionTimeSeconds)));
 
-            // 给予奖励
+            // 给予基础奖励
             plugin.getDungeonManager().getRewardManager().giveRewards(player, templateName);
+
+            // 给予时间奖励
+            plugin.getDungeonManager().getRewardManager().giveTimeRewards(player, templateName, completionTimeSeconds);
 
             // 更新玩家统计数据
             PlayerData playerData = plugin.getDungeonManager().getPlayerData(player.getUniqueId());

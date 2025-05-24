@@ -14,6 +14,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -183,6 +184,27 @@ public class TemplateManager {
                 }
             }
 
+            // 加载时间奖励
+            ConfigurationSection timeRewardsSection = config.getConfigurationSection("timeRewards");
+            if (timeRewardsSection != null) {
+                for (String timeKey : timeRewardsSection.getKeys(false)) {
+                    try {
+                        // 解析时间（支持多种格式：3600、"1h"、"90m"等）
+                        int timeSeconds = parseTimeString(timeKey);
+
+                        ConfigurationSection timeRewardSection = timeRewardsSection.getConfigurationSection(timeKey);
+                        if (timeRewardSection != null) {
+                            List<String> commands = timeRewardSection.getStringList("commands");
+                            if (!commands.isEmpty()) {
+                                template.addTimeReward(timeSeconds, commands);
+                            }
+                        }
+                    } catch (NumberFormatException e) {
+                        plugin.getLogger().warning("无效的时间格式: " + timeKey + " 在模板 " + templateName + " 中");
+                    }
+                }
+            }
+
             // 将模板添加到映射
             templates.put(templateName, template);
         }
@@ -306,5 +328,56 @@ public class TemplateManager {
      */
     public File getTemplateDirectory(String templateName) {
         return new File(templatesDir, templateName);
+    }
+
+    /**
+     * 解析时间字符串
+     * 支持格式：3600、"1h"、"90m"、"30s"
+     * @param timeString 时间字符串
+     * @return 时间（秒）
+     * @throws NumberFormatException 如果格式无效
+     */
+    private int parseTimeString(String timeString) throws NumberFormatException {
+        if (timeString == null || timeString.isEmpty()) {
+            throw new NumberFormatException("时间字符串为空");
+        }
+
+        // 移除引号
+        timeString = timeString.replace("\"", "").replace("'", "").trim();
+
+        // 如果是纯数字，直接返回
+        try {
+            return Integer.parseInt(timeString);
+        } catch (NumberFormatException e) {
+            // 继续解析带单位的格式
+        }
+
+        // 解析带单位的格式
+        if (timeString.length() < 2) {
+            throw new NumberFormatException("无效的时间格式: " + timeString);
+        }
+
+        String unit = timeString.substring(timeString.length() - 1).toLowerCase();
+        String numberPart = timeString.substring(0, timeString.length() - 1);
+
+        int number;
+        try {
+            number = Integer.parseInt(numberPart);
+        } catch (NumberFormatException e) {
+            throw new NumberFormatException("无效的数字部分: " + numberPart);
+        }
+
+        switch (unit) {
+            case "s": // 秒
+                return number;
+            case "m": // 分钟
+                return number * 60;
+            case "h": // 小时
+                return number * 3600;
+            case "d": // 天
+                return number * 86400;
+            default:
+                throw new NumberFormatException("不支持的时间单位: " + unit);
+        }
     }
 }

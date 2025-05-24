@@ -78,9 +78,9 @@ reviveItem:
 #        count: 10
 #      reachArea:
 #        location: "world,100,64,100"
-#        radius: 3.0    
+#        radius: 3.0
 
-#多级通关条件    
+#多级通关条件
 #completion:
 #  composite:
 #    type: AND
@@ -162,3 +162,28 @@ mythicMobsSpawners:
     location: "world,110,64,110"
     cooldown: 60
     amount: 5
+
+# 时间奖励配置 - 根据完成时间给予不同奖励
+# 时间格式支持：3600（秒）、"1h"（小时）、"90m"（分钟）、"30s"（秒）
+# 注意：时间越短奖励越好，系统会自动选择符合条件的最佳奖励
+timeRewards:
+  # 1小时内完成 - 最高奖励
+  "1h":
+    commands:
+      - "give %player% diamond 5"
+      - "eco give %player% 1000"
+      - "say %player% 在1小时内完成了副本，获得钻石奖励！"
+
+  # 1.5小时内完成 - 中等奖励
+  "90m":
+    commands:
+      - "give %player% gold_ingot 10"
+      - "eco give %player% 500"
+      - "say %player% 在1.5小时内完成了副本，获得金锭奖励！"
+
+  # 2小时内完成 - 基础奖励
+  "2h":
+    commands:
+      - "give %player% iron_ingot 20"
+      - "eco give %player% 200"
+      - "say %player% 在2小时内完成了副本，获得铁锭奖励！"

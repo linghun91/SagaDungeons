@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * 副本模板数据模型
@@ -28,6 +29,7 @@ public class DungeonTemplate {
     private String worldPath; // 世界文件路径
     private String spawnLocation; // 重生点位置
     private String triggerConfig;
+    private final TreeMap<Integer, List<String>> timeRewards = new TreeMap<>(); // 时间奖励配置
 
     // 条件启用状态
     private boolean moneyEnabled = true;
@@ -428,5 +430,41 @@ public class DungeonTemplate {
      */
     public boolean hasTriggerConfig() {
         return triggerConfig != null && !triggerConfig.isEmpty();
+    }
+
+    /**
+     * 获取时间奖励配置
+     * @return 时间奖励配置映射
+     */
+    public TreeMap<Integer, List<String>> getTimeRewards() {
+        return timeRewards;
+    }
+
+    /**
+     * 添加时间奖励
+     * @param timeSeconds 时间限制（秒）
+     * @param rewardCommands 奖励命令列表
+     */
+    public void addTimeReward(int timeSeconds, List<String> rewardCommands) {
+        timeRewards.put(timeSeconds, new ArrayList<>(rewardCommands));
+    }
+
+    /**
+     * 检查是否有时间奖励配置
+     * @return 是否有时间奖励配置
+     */
+    public boolean hasTimeRewards() {
+        return !timeRewards.isEmpty();
+    }
+
+    /**
+     * 根据完成时间获取对应的时间奖励
+     * @param completionTimeSeconds 完成时间（秒）
+     * @return 奖励命令列表，如果没有匹配的奖励则返回null
+     */
+    public List<String> getTimeRewardForCompletion(int completionTimeSeconds) {
+        // 使用TreeMap的floorEntry方法找到小于等于完成时间的最大时间限制
+        Map.Entry<Integer, List<String>> entry = timeRewards.floorEntry(completionTimeSeconds);
+        return entry != null ? entry.getValue() : null;
     }
 }

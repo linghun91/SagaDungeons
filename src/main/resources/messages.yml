@@ -279,7 +279,7 @@ command:
       item: "&a你使用了复活道具 &e%item%&a，已在副本中重生！"
     admin-close: "&c副本 &e%id% &c已被管理员关闭，你已被传送出副本！"
   completion:
-    success: "&a恭喜你完成了副本 &e%dungeon%&a！"
+    success: "&a恭喜你完成了副本 &e%dungeon%&a！用时：&b%time%"
     kill-all:
       description: "&7击杀副本中的所有怪物"
       progress: "&7已击杀: &e%killed%/%total%"
@@ -308,3 +308,7 @@ command:
       description: "&a物品: &e%item% x%amount%"
     command:
       description: "&a特殊奖励"
+    time:
+      header: "&6=== 时间奖励 ==="
+      description: "&a快速通关奖励 (用时: &e%time%&a)"
+      footer: "&6==============="

@@ -1,5 +1,56 @@
 # SagaDungeons 更新日志
 
+## 版本 1.0.10 (2025-05-24)
+
+### 新增功能
+
+- 实现了基于时间的提前通关奖励系统
+  - 添加了 `TimeReward` 奖励类，支持根据完成时间给予不同奖励
+  - 在 `DungeonTemplate` 中添加了 `timeRewards` 配置支持，使用 `TreeMap` 智能匹配最佳时间奖励
+  - 扩展了 `TemplateManager` 的 `parseTimeString()` 方法，支持多种时间格式：`3600`（秒）、`"1h"`（小时）、`"90m"`（分钟）、`"30s"`（秒）、`"1d"`（天）
+  - 在 `RewardManager` 中添加了 `giveTimeRewards()` 方法，处理时间奖励的给予和消息显示
+  - 修改了 `DungeonInstance.handleCompletion()` 方法，自动计算完成时间并给予相应的时间奖励
+
+### 功能特点
+
+- **智能时间匹配**：使用 `TreeMap.floorEntry()` 方法自动选择符合条件的最佳时间奖励
+- **灵活的时间格式**：支持纯数字秒数和带单位的时间格式，自动解析转换
+- **完整的消息系统**：在完成消息中显示用时，专门的时间奖励消息提示
+- **向后兼容**：不影响现有的基础奖励系统，可选功能，完全遵循项目的模块化架构
+
+### 配置示例
+
+```yaml
+# 时间奖励配置 - 根据完成时间给予不同奖励
+timeRewards:
+  # 1小时内完成 - 最高奖励
+  "1h":
+    commands:
+      - "give %player% diamond 5"
+      - "eco give %player% 1000"
+      - "say %player% 在1小时内完成了副本，获得钻石奖励！"
+
+  # 1.5小时内完成 - 中等奖励
+  "90m":
+    commands:
+      - "give %player% gold_ingot 10"
+      - "eco give %player% 500"
+      - "say %player% 在1.5小时内完成了副本，获得金锭奖励！"
+
+  # 2小时内完成 - 基础奖励
+  "2h":
+    commands:
+      - "give %player% iron_ingot 20"
+      - "eco give %player% 200"
+      - "say %player% 在2小时内完成了副本，获得铁锭奖励！"
+```
+
+### 消息配置更新
+
+- 更新了 `messages.yml` 中的完成消息，添加了用时显示
+- 添加了时间奖励相关的消息配置：`dungeon.reward.time.header`、`dungeon.reward.time.description`、`dungeon.reward.time.footer`
+- 更新了副本模板示例 `templates/example/config.yml`，添加了时间奖励配置示例
+
 ## 版本 1.0.9.3 (2025-05-18)
 
 ### 问题修复

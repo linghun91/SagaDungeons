@@ -4,6 +4,7 @@ import cn.i7mc.sagadungeons.SagaDungeons;
 import cn.i7mc.sagadungeons.model.DungeonTemplate;
 import cn.i7mc.sagadungeons.util.ItemStackUtil;
 import cn.i7mc.sagadungeons.util.MessageUtil;
+import cn.i7mc.sagadungeons.util.TimeUtil;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
@@ -156,5 +157,48 @@ public class RewardManager {
 
         // 发送奖励页脚
         MessageUtil.sendMessage(player, "dungeon.reward.footer");
+    }
+
+    /**
+     * 给予时间奖励
+     * @param player 玩家
+     * @param templateName 模板名称
+     * @param completionTimeSeconds 完成时间（秒）
+     */
+    public void giveTimeRewards(Player player, String templateName, int completionTimeSeconds) {
+        // 获取模板
+        DungeonTemplate template = plugin.getConfigManager().getTemplateManager().getTemplate(templateName);
+        if (template == null || !template.hasTimeRewards()) {
+            return;
+        }
+
+        // 获取对应的时间奖励
+        List<String> rewardCommands = template.getTimeRewardForCompletion(completionTimeSeconds);
+        if (rewardCommands == null || rewardCommands.isEmpty()) {
+            return;
+        }
+
+        // 创建时间奖励实例
+        String timeDescription = TimeUtil.formatTimeShort(completionTimeSeconds);
+        String description = plugin.getConfigManager().getMessageManager().getMessage("dungeon.reward.time.description",
+                MessageUtil.createPlaceholders("time", timeDescription));
+
+        TimeReward timeReward = new TimeReward(plugin, rewardCommands, description);
+
+        // 发送时间奖励标题
+        MessageUtil.sendMessage(player, "dungeon.reward.time.header",
+                MessageUtil.createPlaceholders("time", timeDescription));
+
+        // 给予时间奖励
+        boolean success = timeReward.give(player);
+
+        // 发送奖励消息
+        if (success) {
+            MessageUtil.sendMessage(player, "dungeon.reward.entry",
+                    MessageUtil.createPlaceholders("description", timeReward.getDescription()));
+        }
+
+        // 发送时间奖励页脚
+        MessageUtil.sendMessage(player, "dungeon.reward.time.footer");
     }
 }
