@@ -72,11 +72,28 @@ public class KillSpecificCondition implements CompletionCondition {
     public void handleEvent(Player player, String event, Object data) {
         if ("kill".equals(event) && data instanceof Entity) {
             Entity entity = (Entity) data;
-            
+
             // 检查是否为目标怪物
-            if (entity.getName().equals(targetMobName) || 
-                    (entity.getCustomName() != null && entity.getCustomName().equals(targetMobName))) {
-                // 添加到已击杀列表
+            boolean isTargetMob = false;
+
+            // 首先检查MythicMobs怪物类型
+            if (plugin.getHookManager().isMythicMobsAvailable()) {
+                String mythicMobType = plugin.getHookManager().getMythicMobsHook().getMythicMobType(entity);
+                if (mythicMobType != null && mythicMobType.equals(targetMobName)) {
+                    isTargetMob = true;
+                }
+            }
+
+            // 如果不是MythicMobs怪物，检查实体名称和自定义名称
+            if (!isTargetMob) {
+                if (entity.getName().equals(targetMobName) ||
+                        (entity.customName() != null && entity.customName().toString().equals(targetMobName))) {
+                    isTargetMob = true;
+                }
+            }
+
+            // 如果是目标怪物，标记为已击杀
+            if (isTargetMob) {
                 killedTargets.add(entity.getUniqueId());
                 killed = true;
             }

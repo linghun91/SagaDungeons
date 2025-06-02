@@ -245,6 +245,7 @@ public class CommandManager implements CommandExecutor, TabCompleter {
                 adminSubCommands.add("forceclose");
                 adminSubCommands.add("setspawn");
                 adminSubCommands.add("gui");
+                adminSubCommands.add("spawner");
                 adminSubCommands.add("help");
 
                 for (String subCommand : adminSubCommands) {
@@ -343,6 +344,7 @@ public class CommandManager implements CommandExecutor, TabCompleter {
         MessageUtil.sendMessage(sender, "command.admin.help.forceclose");
         MessageUtil.sendMessage(sender, "command.admin.help.setspawn");
         MessageUtil.sendMessage(sender, "command.admin.help.gui");
+        MessageUtil.sendMessage(sender, "command.admin.help.spawner");
         MessageUtil.sendMessage(sender, "command.admin.help.help");
 
         // 发送帮助页脚

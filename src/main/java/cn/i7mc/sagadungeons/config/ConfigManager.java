@@ -129,6 +129,14 @@ public class ConfigManager {
     }
 
     /**
+     * 获取通关后延迟删除时间(秒)
+     * @return 通关后延迟删除时间
+     */
+    public int getCompletionDeleteDelay() {
+        return config.getInt("dungeon.completion-delete-delay", 10);
+    }
+
+    /**
      * 检查是否在服务器启动时清理残留副本
      * @return 是否清理残留副本
      */

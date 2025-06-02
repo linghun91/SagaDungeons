@@ -23,6 +23,12 @@ dungeon:
     expired: "副本已超时，ID: %id%，开始清理"
   spawner:
     set: "设置刷怪点，位置（不含世界名）: %location%"
+  completion:
+    kill-entity: "击杀实体信息 - 实体名称: %entity_name%, 自定义名称: %custom_name%, MythicMobs类型: %mythic_type%, 目标怪物: %target_mob%"
+    mythic-match: "通过MythicMobs类型匹配到目标怪物: %mythic_type%"
+    name-match: "通过实体名称匹配到目标怪物: %target_mob%"
+    condition-complete: "击杀特定怪物条件已完成: %target_mob%"
+    dungeon-complete: "副本通关条件已满足，设置状态为COMPLETED: %dungeon_id%"
 
 hook:
   vault:
@@ -47,6 +53,7 @@ hook:
     remove-spawner-error: "移除刷怪点时出错"
     setup-spawner-error: "设置刷怪点属性时出错，刷怪点: %name%"
     get-mob-types-error: "获取所有怪物类型时出错"
+    get-mob-type-error: "获取MythicMobs怪物类型时出错"
   placeholderapi:
     init: "正在初始化PlaceholderAPI系统"
     success: "PlaceholderAPI系统初始化成功"

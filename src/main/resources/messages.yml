@@ -72,6 +72,29 @@ dungeon:
     format: "&e%id% &7- &a%name% &7- &b%owner% &7- &c%players%/%max_players%"
     footer: "&6=================="
     empty: "&c当前没有可用的副本！"
+  completion:
+    success: "&a恭喜你完成了副本 &e%dungeon%&a！用时：&b%time%"
+    title:
+      main: "&6&l恭喜你通关副本！"
+      sub: "&e你已通关该副本，还有 &c%time% &e秒被强制传出"
+      sub-urgent: "&c你已通关该副本，还有 &4%time% &c秒被强制传出！"
+    countdown:
+      normal: "&e你已通关该副本，还有 &c%time% &e秒被强制传出"
+      urgent: "&c你已通关该副本，还有 &4%time% &c秒被强制传出！"
+    kill-all:
+      description: "&7击杀副本中的所有怪物"
+      progress: "&7已击杀: &e%killed%/%total%"
+    reach-area:
+      description: "&7到达指定区域 &e(%x%, %y%, %z%)"
+      reached: "&7已到达目标区域"
+      not-reached: "&7尚未到达目标区域"
+    kill-specific:
+      description: "&7击杀特定怪物: &e%mob%"
+      killed: "&7已击杀目标怪物"
+      not-killed: "&7尚未击杀目标怪物"
+    kill-count:
+      description: "&7击杀 &e%count% &7个怪物"
+      progress: "&7已击杀: &e%current%/%target%"
 
 command:
   help:
@@ -87,24 +110,7 @@ command:
     admin: "&e/sd admin &7- 管理员命令（需要管理员权限）"
     help: "&e/sd help &7- 显示此帮助信息"
     footer: "&6======================"
-  spawner:
-    set:
-      usage: "&c用法: /sd spawner set <刷怪点ID> <怪物类型> <数量> [冷却时间]"
-      success: "&a成功设置刷怪点 &e%id%&a，怪物类型: &e%mob%&a，数量: &e%amount%&a，冷却时间: &e%cooldown%&a秒"
-      invalid-mob-type: "&c无效的怪物类型: &e%mob%"
-      invalid-amount: "&c无效的数量，必须是一个正整数"
-      spawner-id-hint: "&7提示: 输入刷怪点ID，例如 mob1, boss, spawn1 等"
-      invalid-cooldown: "&c无效的冷却时间，必须是一个整数"
-    remove:
-      usage: "&c用法: /sd spawner remove <刷怪点ID>"
-      success: "&a成功移除刷怪点 &e%id%"
-      not-found: "&c找不到刷怪点 &e%id%"
-    list:
-      header: "&6=== 刷怪点列表 ==="
-      entry: "&e%id% &7- &a%mob% &7- &c数量: %amount% &7- &b冷却: %cooldown%秒"
-      footer: "&6=================="
-      empty: "&c当前副本没有设置任何刷怪点"
-    unknown: "&c未知的刷怪点命令: &e%command%"
+
 
   admin:
     help:
@@ -238,28 +244,7 @@ command:
     set-public: "&a副本已设置为公开状态，所有玩家都可以加入。"
     set-private: "&a副本已设置为私有状态，只有被邀请的玩家才能加入。"
 
-  spawner:
-    usage: "&c用法: /sd spawner <set/remove/list>"
-    not-in-dungeon: "&c你必须在副本中才能管理刷怪点。"
-    dungeon-not-found: "&c找不到你所在的副本。"
-    not-owner: "&c只有副本创建者才能管理刷怪点。"
-    template-not-found: "&c找不到副本模板。"
-    unknown: "&c未知子命令: &e%command%&c。"
-    set:
-      usage: "&c用法: /sd spawner set <ID> <怪物类型> [数量] [冷却时间]"
-      invalid-amount: "&c无效的数量，必须是一个整数。"
-      invalid-cooldown: "&c无效的冷却时间，必须是一个整数。"
-      invalid-mob-type: "&c无效的怪物类型: &e%mob%&c。"
-      success: "&a成功设置刷怪点 &e%id%&a，怪物类型: &e%mob%&a，数量: &e%amount%&a，冷却时间: &e%cooldown%&a秒。"
-    remove:
-      usage: "&c用法: /sd spawner remove <ID>"
-      success: "&a成功移除刷怪点 &e%id%&a。"
-      not-found: "&c找不到刷怪点 &e%id%&c。"
-    list:
-      empty: "&c当前没有刷怪点。"
-      header: "&6=== 刷怪点列表 ==="
-      entry: "&e%id% &7- 怪物: &e%mob% &7- 数量: &e%amount% &7- 冷却: &e%cooldown%&7秒"
-      footer: "&6=================="
+
 
   stats:
     player-not-found: "&c找不到玩家 &e%player%&c。"
@@ -278,22 +263,6 @@ command:
     revive:
       item: "&a你使用了复活道具 &e%item%&a，已在副本中重生！"
     admin-close: "&c副本 &e%id% &c已被管理员关闭，你已被传送出副本！"
-  completion:
-    success: "&a恭喜你完成了副本 &e%dungeon%&a！用时：&b%time%"
-    kill-all:
-      description: "&7击杀副本中的所有怪物"
-      progress: "&7已击杀: &e%killed%/%total%"
-    reach-area:
-      description: "&7到达指定区域 &e(%x%, %y%, %z%)"
-      reached: "&7已到达目标区域"
-      not-reached: "&7尚未到达目标区域"
-    kill-specific:
-      description: "&7击杀特定怪物: &e%mob%"
-      killed: "&7已击杀目标怪物"
-      not-killed: "&7尚未击杀目标怪物"
-    kill-count:
-      description: "&7击杀 &e%count% &7个怪物"
-      progress: "&7已击杀: &e%current%/%target%"
   reward:
     header: "&6=== 副本奖励 ==="
     entry: "&a- %description%"

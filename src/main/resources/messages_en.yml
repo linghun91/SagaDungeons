@@ -72,6 +72,29 @@ dungeon:
     format: "&e%id% &7- &a%name% &7- &b%owner% &7- &c%players%/%max_players%"
     footer: "&6=================="
     empty: "&cThere are currently no available dungeons!"
+  completion:
+    success: "&aCongratulations, you completed the dungeon &e%dungeon%&a! Time taken: &b%time%"
+    title:
+      main: "&6&lCongratulations on Completing the Dungeon!"
+      sub: "&eYou have completed the dungeon, you will be forced to teleport out in &c%time% &eseconds"
+      sub-urgent: "&cYou have completed the dungeon, you will be forced to teleport out in &4%time% &cseconds!"
+    countdown:
+      normal: "&eYou have completed the dungeon, you will be forced to teleport out in &c%time% &eseconds"
+      urgent: "&cYou have completed the dungeon, you will be forced to teleport out in &4%time% &cseconds!"
+    kill-all:
+      description: "&7Kill all monsters in the dungeon"
+      progress: "&7Killed: &e%killed%/%total%"
+    reach-area:
+      description: "&7Reach the specified area &e(%x%, %y%, %z%)"
+      reached: "&7Reached the target area"
+      not-reached: "&7Not yet reached the target area"
+    kill-specific:
+      description: "&7Kill specific monster: &e%mob%"
+      killed: "&7Killed target monster"
+      not-killed: "&7Not yet killed target monster"
+    kill-count:
+      description: "&7Kill &e%count% &7monsters"
+      progress: "&7Killed: &e%current%/%target%"
 
 command:
   help:
@@ -87,24 +110,7 @@ command:
     admin: "&e/sd admin &7- Admin commands (requires admin permission)"
     help: "&e/sd help &7- Display this help message"
     footer: "&6======================"
-  spawner: # This spawner section seems to be for general player commands
-    set:
-      usage: "&cUsage: /sd spawner set <spawner_id> <mob_type> <amount> [cooldown]"
-      success: "&aSuccessfully set spawner &e%id%&a, Mob Type: &e%mob%&a, Amount: &e%amount%&a, Cooldown: &e%cooldown%&a seconds"
-      invalid-mob-type: "&cInvalid mob type: &e%mob%"
-      invalid-amount: "&cInvalid amount, must be a positive integer"
-      spawner-id-hint: "&7Hint: Enter spawner ID, e.g., mob1, boss, spawn1, etc."
-      invalid-cooldown: "&cInvalid cooldown, must be an integer"
-    remove:
-      usage: "&cUsage: /sd spawner remove <spawner_id>"
-      success: "&aSuccessfully removed spawner &e%id%"
-      not-found: "&cCould not find spawner &e%id%"
-    list:
-      header: "&6=== Spawner List ==="
-      entry: "&e%id% &7- &a%mob% &7- &cAmount: %amount% &7- &bCooldown: %cooldown% seconds"
-      footer: "&6=================="
-      empty: "&cNo spawners are set for the current dungeon"
-    unknown: "&cUnknown spawner command: &e%command%"
+
 
   admin:
     help:
@@ -241,28 +247,7 @@ command:
     set-public: "&aDungeon set to public, all players can join."
     set-private: "&aDungeon set to private, only invited players can join."
 
-  spawner: # Player command - spawner management within their own dungeon instance
-    usage: "&cUsage: /sd spawner <set/remove/list>"
-    not-in-dungeon: "&cYou must be in a dungeon to manage spawners."
-    dungeon-not-found: "&cCould not find the dungeon you are in."
-    not-owner: "&cOnly the dungeon creator can manage spawners." # Or perhaps if they have perms for that template type?
-    template-not-found: "&cCould not find dungeon template."
-    unknown: "&cUnknown subcommand: &e%command%&c."
-    set:
-      usage: "&cUsage: /sd spawner set <ID> <mob_type> [amount] [cooldown]"
-      invalid-amount: "&cInvalid amount, must be an integer."
-      invalid-cooldown: "&cInvalid cooldown, must be an integer."
-      invalid-mob-type: "&cInvalid mob type: &e%mob%&c."
-      success: "&aSuccessfully set spawner &e%id%&a, Mob Type: &e%mob%&a, Amount: &e%amount%&a, Cooldown: &e%cooldown%&a seconds."
-    remove:
-      usage: "&cUsage: /sd spawner remove <ID>"
-      success: "&aSuccessfully removed spawner &e%id%&a."
-      not-found: "&cCould not find spawner &e%id%&c."
-    list:
-      empty: "&cNo spawners currently set."
-      header: "&6=== Spawner List ==="
-      entry: "&e%id% &7- Mob: &e%mob% &7- Amount: &e%amount% &7- Cooldown: &e%cooldown%&7 seconds"
-      footer: "&6=================="
+
 
   stats:
     player-not-found: "&cCould not find player &e%player%&c."
@@ -281,22 +266,6 @@ command:
     revive:
       item: "&aYou used a revive item &e%item%&a and have respawned in the dungeon!"
     admin-close: "&cDungeon &e%id% &cwas closed by an admin, you have been teleported out!"
-  completion:
-    success: "&aCongratulations, you completed the dungeon &e%dungeon%&a! Time taken: &b%time%"
-    kill-all:
-      description: "&7Kill all monsters in the dungeon"
-      progress: "&7Killed: &e%killed%/%total%"
-    reach-area:
-      description: "&7Reach the specified area &e(%x%, %y%, %z%)"
-      reached: "&7Reached the target area"
-      not-reached: "&7Not yet reached the target area"
-    kill-specific:
-      description: "&7Kill specific monster: &e%mob%"
-      killed: "&7Killed target monster"
-      not-killed: "&7Not yet killed target monster"
-    kill-count:
-      description: "&7Kill &e%count% &7monsters"
-      progress: "&7Killed: &e%current%/%target%"
   reward:
     header: "&6=== Dungeon Rewards ==="
     entry: "&a- %description%"

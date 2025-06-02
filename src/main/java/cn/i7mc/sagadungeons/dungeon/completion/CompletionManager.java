@@ -81,7 +81,7 @@ public class CompletionManager {
                 int p2 = c2 instanceof CompositeCondition ? ((CompositeCondition) c2).getPriority() : 0;
                 return Integer.compare(p2, p1); // 优先级高的排在前面
             });
-            
+
             dungeonConditions.put(template.getName(), conditions);
         }
     }
@@ -191,6 +191,11 @@ public class CompletionManager {
         // 获取副本实例
         DungeonInstance instance = plugin.getDungeonManager().getDungeon(dungeonId);
         if (instance == null) {
+            return;
+        }
+
+        // 检查副本是否已经完成，避免重复处理
+        if (instance.getState() == cn.i7mc.sagadungeons.dungeon.DungeonState.COMPLETED) {
             return;
         }
 

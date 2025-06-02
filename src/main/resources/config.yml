@@ -9,7 +9,7 @@ debug: false
 
 # 语言设置 (可选: zh, en)
 # Language Setting (Options: zh, en)
-lang: en
+lang: zh
 
 # 副本设置
 # Dungeon Settings
@@ -22,7 +22,10 @@ dungeon:
   default-timeout: 3600
   # 副本创建冷却时间(秒)
   # Dungeon Creation Cooldown (seconds)
-  creation-cooldown: 300
+  creation-cooldown: 3
+  # 通关后延迟删除时间(秒)
+  # Completion Auto Delete Delay (seconds)
+  completion-delete-delay: 15
   # 是否在服务器启动时清理残留副本
   # Whether to Clean Up Residual Dungeons on Server Startup
   cleanup-on-startup: true

@@ -34,15 +34,15 @@ public class CompletionListener extends AbstractListener {
         if (killer == null) {
             return;
         }
-        
+
         // 获取玩家数据
         PlayerData playerData = plugin.getDungeonManager().getPlayerData(killer.getUniqueId());
-        
+
         // 检查玩家是否在副本中
         if (!playerData.isInDungeon()) {
             return;
         }
-        
+
         // 处理击杀事件
         plugin.getDungeonManager().getCompletionManager().handleEvent(killer, "kill", event.getEntity());
     }

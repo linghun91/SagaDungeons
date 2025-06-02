@@ -5,6 +5,7 @@ import cn.i7mc.sagadungeons.util.DebugUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.plugin.Plugin;
 
@@ -215,6 +216,51 @@ public class MythicMobsHook {
         }
 
         return mobTypes;
+    }
+
+    /**
+     * 获取MythicMobs怪物的类型名称
+     * @param entity 实体
+     * @return MythicMobs类型名称，如果不是MythicMobs怪物则返回null
+     */
+    public String getMythicMobType(Entity entity) {
+        if (!isAvailable() || entity == null) {
+            return null;
+        }
+
+        try {
+            // 获取MobManager
+            Method getMobManagerMethod = mythicMobsInstance.getClass().getMethod("getMobManager");
+            Object mobManager = getMobManagerMethod.invoke(mythicMobsInstance);
+
+            // 检查是否为MythicMobs怪物
+            Method isMythicMobMethod = mobManager.getClass().getMethod("isMythicMob", Entity.class);
+            boolean isMythicMob = (boolean) isMythicMobMethod.invoke(mobManager, entity);
+
+            if (!isMythicMob) {
+                return null;
+            }
+
+            // 获取MythicMobs实例
+            Method getMythicMobInstanceMethod = mobManager.getClass().getMethod("getMythicMobInstance", Entity.class);
+            Object mythicMobInstance = getMythicMobInstanceMethod.invoke(mobManager, entity);
+
+            if (mythicMobInstance == null) {
+                return null;
+            }
+
+            // 获取类型
+            Method getTypeMethod = mythicMobInstance.getClass().getMethod("getType");
+            Object mythicMobType = getTypeMethod.invoke(mythicMobInstance);
+
+            // 获取内部名称
+            Method getInternalNameMethod = mythicMobType.getClass().getMethod("getInternalName");
+            return (String) getInternalNameMethod.invoke(mythicMobType);
+
+        } catch (Exception e) {
+            DebugUtil.debug("hook.mythicmobs.get-mob-type-error");
+            return null;
+        }
     }
 
     /**

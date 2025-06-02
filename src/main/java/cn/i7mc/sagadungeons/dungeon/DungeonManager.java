@@ -44,7 +44,8 @@ public class DungeonManager {
         this.plugin = plugin;
         this.cooldownManager = new CooldownManager(plugin);
         this.deathManager = new DeathManager(plugin);
-        this.completionManager = new CompletionManager(plugin);
+        // 使用TemplateManager中的CompletionManager实例，而不是创建新的
+        this.completionManager = plugin.getConfigManager().getTemplateManager().getCompletionManager();
         this.rewardManager = new RewardManager(plugin);
         this.triggerManager = new TriggerManager(plugin);
 
@@ -703,36 +704,5 @@ public class DungeonManager {
         Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, this::saveAllData, 6000L, 6000L);
     }
 
-    // 在handleCompletion方法中添加触发器检查
-    private void handleCompletion(DungeonInstance instance) {
-        // 获取副本世界
-        if (instance.getWorld() == null) {
-            return;
-        }
 
-        // 发送完成消息
-        for (Player player : instance.getWorld().getPlayers()) {
-            // 发送完成消息
-            MessageUtil.sendMessage(player, "dungeon.completion.success",
-                    MessageUtil.createPlaceholders("dungeon", instance.getDisplayName()));
-
-            // 给予奖励
-            rewardManager.giveRewards(player, instance.getTemplateName());
-
-            // 更新玩家统计数据
-            PlayerData playerData = getPlayerData(player.getUniqueId());
-            if (playerData != null) {
-                playerData.incrementCompletedCount(instance.getTemplateName());
-            }
-
-            // 检查并执行触发器
-            triggerManager.checkAndExecuteTriggers(instance, player);
-        }
-
-        // 延迟删除副本
-        Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            // 删除副本
-            deleteDungeon(instance.getId());
-        }, 200L); // 10秒后删除
-    }
 }

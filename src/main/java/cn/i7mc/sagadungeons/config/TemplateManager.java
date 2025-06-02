@@ -380,4 +380,12 @@ public class TemplateManager {
                 throw new NumberFormatException("不支持的时间单位: " + unit);
         }
     }
+
+    /**
+     * 获取通关条件管理器
+     * @return 通关条件管理器
+     */
+    public CompletionManager getCompletionManager() {
+        return completionManager;
+    }
 }
