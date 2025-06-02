@@ -1,0 +1,283 @@
+# SagaDungeons 消息配置文件
+# 版本: 1.0.0
+
+prefix: "&6[&bSagaDungeons&6] "
+
+general:
+  no-permission: "&c你没有权限执行此命令。"
+  player-only: "&c此命令只能由玩家执行。"
+  reload-success: "&a配置文件重载成功！"
+  unknown-command: "&c未知命令，请使用 &6/sd help &c查看帮助。"
+  public: "&a公开"
+  private: "&c私有"
+
+dungeon:
+  create:
+    success: "&a副本创建成功！副本ID: &e%id%"
+    fail: "&c副本创建失败！"
+    cooldown: "&c你需要等待 &e%time% &c秒后才能再次创建副本。"
+    no-template: "&c找不到指定的副本模板: &e%template%"
+    no-money: "&c你没有足够的金币创建此副本，需要: &e%amount%"
+    no-points: "&c你没有足够的点券创建此副本，需要: &e%amount%"
+    no-item: "&c你没有足够的物品创建此副本，需要: &e%item% x%amount%"
+    no-level: "&c你的等级不足以创建此副本，需要: &e%level%"
+    locked: "&c另一个副本正在创建中，请稍后再试。"
+  requirement:
+    money:
+      fail: "&c你没有足够的金币，需要: &e%amount%"
+    points:
+      fail: "&c你没有足够的点券，需要: &e%amount%"
+    level:
+      fail: "&c你的等级不足，需要: &e%level%"
+    item:
+      fail: "&c你没有足够的物品，需要: &e%item% x%amount%"
+      name:
+        fail: "&c你没有足够的物品，需要: &e%name% (%item%) x%amount%"
+    vault:
+      unavailable: "&c经济系统不可用，无法检查金币条件。"
+    playerpoints:
+      unavailable: "&c点券系统不可用，无法检查点券条件。"
+  join:
+    success: "&a成功加入副本！"
+    fail: "&c加入副本失败！"
+    not-found: "&c找不到指定的副本！"
+    not-allowed: "&c你没有权限加入此副本！"
+    full: "&c此副本已满员！"
+  leave:
+    success: "&a成功离开副本！"
+    not-in-dungeon: "&c你当前不在任何副本中！"
+    fail: "&c离开副本失败！"
+  command.leave:
+    success: "&a成功离开副本！"
+    not-in-dungeon: "&c你当前不在任何副本中！"
+    fail: "&c离开副本失败！"
+  invite:
+    sent: "&a已向 &e%player% &a发送副本邀请！"
+    received: "&a你收到了来自 &e%player% &a的副本邀请！"
+    expired: "&c副本邀请已过期！"
+    accepted: "&a已接受副本邀请！"
+    declined: "&c已拒绝副本邀请！"
+  kick:
+    success: "&a成功将 &e%player% &a踢出副本！"
+    fail: "&c踢出玩家失败！"
+    not-owner: "&c只有副本创建者才能踢出玩家！"
+  timeout:
+    warning: "&c副本将在 &e%time% &c秒后超时！"
+    expired: "&c副本已超时，即将被传送出副本！"
+  public:
+    enabled: "&a副本已设为公开模式，所有玩家都可以加入！"
+    disabled: "&a副本已设为私有模式，只有受邀玩家才能加入！"
+  list:
+    header: "&6=== 可用副本列表 ==="
+    format: "&e%id% &7- &a%name% &7- &b%owner% &7- &c%players%/%max_players%"
+    footer: "&6=================="
+    empty: "&c当前没有可用的副本！"
+  completion:
+    success: "&a恭喜你完成了副本 &e%dungeon%&a！用时：&b%time%"
+    title:
+      main: "&6&l恭喜你通关副本！"
+      sub: "&e你已通关该副本，还有 &c%time% &e秒被强制传出"
+      sub-urgent: "&c你已通关该副本，还有 &4%time% &c秒被强制传出！"
+    countdown:
+      normal: "&e你已通关该副本，还有 &c%time% &e秒被强制传出"
+      urgent: "&c你已通关该副本，还有 &4%time% &c秒被强制传出！"
+    kill-all:
+      description: "&7击杀副本中的所有怪物"
+      progress: "&7已击杀: &e%killed%/%total%"
+    reach-area:
+      description: "&7到达指定区域 &e(%x%, %y%, %z%)"
+      reached: "&7已到达目标区域"
+      not-reached: "&7尚未到达目标区域"
+    kill-specific:
+      description: "&7击杀特定怪物: &e%mob%"
+      killed: "&7已击杀目标怪物"
+      not-killed: "&7尚未击杀目标怪物"
+    kill-count:
+      description: "&7击杀 &e%count% &7个怪物"
+      progress: "&7已击杀: &e%current%/%target%"
+
+command:
+  help:
+    header: "&6=== SagaDungeons 玩家帮助 ==="
+    create: "&e/sd create <模板> &7- 创建一个副本"
+    list: "&e/sd list &7- 列出所有副本"
+    stats: "&e/sd stats [玩家] &7- 查看副本统计数据"
+    invite: "&e/sd invite <玩家> &7- 邀请玩家加入副本"
+    join: "&e/sd join <ID/玩家名> &7- 加入一个副本"
+    leave: "&e/sd leave &7- 离开当前副本"
+    kick: "&e/sd kick <玩家> &7- 将玩家踢出副本"
+    public: "&e/sd public &7- 切换副本公开/私有状态"
+    admin: "&e/sd admin &7- 管理员命令（需要管理员权限）"
+    help: "&e/sd help &7- 显示此帮助信息"
+    footer: "&6======================"
+
+
+  admin:
+    help:
+      header: "&6=== SagaDungeons 管理员帮助 ==="
+      reload: "&e/sd admin reload &7- 重新加载配置"
+      delete: "&e/sd admin delete <副本ID> &7- 删除指定副本"
+      tp: "&e/sd admin tp <副本ID> &7- 传送到指定副本"
+      list: "&e/sd admin list &7- 列出所有副本"
+      createtemplate: "&e/sd admin createtemplate <模板名称> [世界路径] &7- 创建新的副本模板"
+      setworld: "&e/sd admin setworld <模板名称> &7- 将当前世界设置为副本模板的世界"
+      copyworld: "&e/sd admin copyworld <模板名称> <世界名称> &7- 将指定世界复制到副本模板的世界目录"
+      setitem: "&e/sd admin setitem <模板名称> <类型> [数量] &7- 将手持物品设置为副本的条件或奖励"
+      forceclose: "&e/sd admin forceclose <副本ID/all> &7- 强制关闭指定副本或所有副本"
+      setspawn: "&e/sd admin setspawn <模板名称> &7- 将当前位置设置为副本模板的重生点"
+      gui: "&e/sd admin gui &7- 打开GUI管理界面"
+      spawner: "&e/sd admin spawner <set/remove/list> &7- 管理副本刷怪点"
+      help: "&e/sd admin help &7- 显示此管理员帮助信息"
+      footer: "&6==========================="
+    reload:
+      success: "&a配置文件已重新加载。"
+    delete:
+      usage: "&c用法: /sd admin delete <副本ID>"
+      success: "&a成功删除副本 &e%id%&a。"
+      fail: "&c删除副本 &e%id% &c失败。"
+    tp:
+      usage: "&c用法: /sd admin tp <副本ID>"
+      success: "&a成功传送到副本 &e%id%&a。"
+      fail: "&c传送到副本 &e%id% &c失败。"
+    unknown: "&c未知管理员命令: &e%command%&c。使用 &e/sd admin help &c查看帮助。"
+    createtemplate:
+      usage: "&c用法: /sd admin createtemplate <模板名称> [世界路径]"
+      invalid-name: "&c无效的模板名称，只允许字母、数字和下划线。"
+      already-exists: "&c模板 &e%template% &c已存在。"
+      success: "&a成功创建模板 &e%template%&a。"
+      set-world-hint: "&a提示: 使用 &e/sd admin setworld %template% &a将当前世界设置为模板世界。"
+    setworld:
+      usage: "&c用法: /sd admin setworld <模板名称>"
+      template-not-found: "&c找不到模板 &e%template%&c。"
+      success: "&a成功将世界 &e%world% &a设置为模板 &e%template% &a的世界。"
+      copy-hint: "&a提示: 使用 &e/sd admin copyworld %template% <世界名称> &a将指定世界复制到模板世界目录。"
+    copyworld:
+      usage: "&c用法: /sd admin copyworld <模板名称> <世界名称>"
+      template-not-found: "&c找不到模板 &e%template%&c。"
+      world-not-found: "&c找不到世界 &e%world%&c。"
+      start: "&a开始将世界 &e%world% &a复制到模板 &e%template% &a的世界目录..."
+      progress: "&a复制进度: &e%progress%%&a..."
+      success: "&a成功将世界 &e%world% &a复制到模板 &e%template% &a的世界目录。"
+      fail: "&c复制世界失败。"
+    setitem:
+      usage: "&c用法: /sd admin setitem <模板名称> <类型> [数量]"
+      template-not-found: "&c找不到模板 &e%template%&c。"
+      invalid-type: "&c无效的类型，可用类型: condition, reward, revive"
+      no-item: "&c你必须手持一个物品。"
+      invalid-amount: "&c无效的数量，必须是一个正整数。"
+      success: "&a成功将手持物品设置为模板 &e%template% &a的 &e%type% &a物品。"
+      fail: "&c设置物品失败。"
+    forceclose:
+      usage: "&c用法: /sd admin forceclose <副本ID/all>"
+      success: "&a成功关闭副本 &e%id%&a。"
+      fail: "&c关闭副本 &e%id% &c失败。"
+      no-dungeons: "&c当前没有活动的副本。"
+      all-success: "&a成功关闭了 &e%count% &a个副本。"
+    setspawn:
+      not-in-dungeon: "&c你必须在副本中才能设置重生点！"
+      invalid-dungeon: "&c无效的副本！"
+      template-not-found: "&c找不到副本模板！"
+      success: "&a成功将当前位置设置为模板 &e%template% &a的重生点！"
+    gui:
+      success: "&a成功打开GUI管理界面！"
+    spawner:
+      usage: "&c用法: /sd admin spawner <set/remove/list>"
+      not-in-dungeon: "&c你必须在副本中才能管理刷怪点。"
+      dungeon-not-found: "&c找不到你所在的副本。"
+      template-not-found: "&c找不到副本模板。"
+      unknown: "&c未知子命令: &e%command%&c。"
+
+  create:
+    usage: "&c用法: /sd create <模板>"
+    template-not-found: "&c模板 &e%template% &c不存在。"
+    already-in-dungeon: "&c你已经在一个副本中，请先离开当前副本。"
+    cooldown: "&c你需要等待 &e%time% &c秒才能再次创建副本。"
+    success: "&a成功创建副本 &e%template%&a。"
+    fail: "&c创建副本失败。"
+
+  list:
+    no-dungeons: "&c当前没有活动的副本。"
+    header: "&6=== 副本列表 ==="
+    entry: "&e%id% &7- &6%template% &7- 创建者: &e%owner% &7- 玩家: &e%players% &7- 剩余时间: &e%time% &7- 状态: %status%"
+    footer: "&6==============="
+
+  invite:
+    usage: "&c用法: /sd invite <玩家>"
+    player-not-found: "&c找不到玩家 &e%player%&c。"
+    cannot-invite-self: "&c你不能邀请自己。"
+    not-in-dungeon: "&c你必须在副本中才能邀请玩家。"
+    dungeon-not-found: "&c找不到你所在的副本。"
+    not-owner: "&c只有副本创建者才能邀请玩家。"
+    target-in-dungeon: "&c玩家 &e%player% &c已经在一个副本中。"
+    success: "&a成功邀请玩家 &e%player% &a加入副本。"
+    received: "&a玩家 &e%player% &a邀请你加入副本 &e%dungeon% &a(ID: &e%id%&a)。使用 &e/sd join %id% &a加入。"
+
+  join:
+    usage: "&c用法: /sd join <ID/玩家名>"
+    already-in-dungeon: "&c你已经在一个副本中，请先离开当前副本。"
+    dungeon-not-found: "&c找不到副本 &e%id%&c。"
+    dungeon-not-available: "&c副本 &e%id% &c当前不可用，可能正在被删除或已完成。"
+    not-allowed: "&c你没有权限加入这个副本。"
+    success: "&a成功加入副本 &e%dungeon%&a。"
+    fail: "&c加入副本失败。"
+
+  leave:
+    not-in-dungeon: "&c你不在任何副本中！"
+    success: "&a你已成功离开副本！"
+    fail: "&c离开副本失败！"
+
+  kick:
+    usage: "&c用法: /sd kick <玩家>"
+    player-not-found: "&c找不到玩家 &e%player%&c。"
+    cannot-kick-self: "&c你不能踢出自己。"
+    not-in-dungeon: "&c你必须在副本中才能踢出玩家。"
+    dungeon-not-found: "&c找不到你所在的副本。"
+    not-owner: "&c只有副本创建者才能踢出玩家。"
+    target-not-in-dungeon: "&c玩家 &e%player% &c不在你的副本中。"
+    success: "&a成功将玩家 &e%player% &a踢出副本。"
+    kicked: "&c你被玩家 &e%player% &c踢出了副本。"
+
+  public:
+    not-in-dungeon: "&c你必须在副本中才能切换公开/私有状态。"
+    dungeon-not-found: "&c找不到你所在的副本。"
+    not-owner: "&c只有副本创建者才能切换公开/私有状态。"
+    set-public: "&a副本已设置为公开状态，所有玩家都可以加入。"
+    set-private: "&a副本已设置为私有状态，只有被邀请的玩家才能加入。"
+
+
+
+  stats:
+    player-not-found: "&c找不到玩家 &e%player%&c。"
+    header: "&6=== &e%player% &6的副本统计 ==="
+    total: "&7总创建: &e%created% &7| 总加入: &e%joined% &7| 总完成: &e%completed%"
+    completed:
+      header: "&7已完成的副本:"
+      entry: "&7- &e%dungeon% &7(&e%count%&7次)"
+      none: "&7尚未完成任何副本"
+    footer: "&6======================"
+
+  death:
+    count: "&c你已经死亡 &e%count%/%limit% &c次！"
+    limit:
+      reached: "&c你已经达到死亡次数上限 &e%limit% &c次，已被踢出副本！"
+    revive:
+      item: "&a你使用了复活道具 &e%item%&a，已在副本中重生！"
+    admin-close: "&c副本 &e%id% &c已被管理员关闭，你已被传送出副本！"
+  reward:
+    header: "&6=== 副本奖励 ==="
+    entry: "&a- %description%"
+    footer: "&6==============="
+    money:
+      description: "&a金币: &e%amount%"
+    points:
+      description: "&a点券: &e%amount%"
+    experience:
+      description: "&a经验: &e%amount%"
+    item:
+      description: "&a物品: &e%item% x%amount%"
+    command:
+      description: "&a特殊奖励"
+    time:
+      header: "&6=== 时间奖励 ==="
+      description: "&a快速通关奖励 (用时: &e%time%&a)"
+      footer: "&6==============="
