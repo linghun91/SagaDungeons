@@ -1,0 +1,73 @@
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
+}
+
+group = 'cn.i7mc'
+version = '1.0.0'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        name = 'papermc-repo'
+        url = 'https://repo.papermc.io/repository/maven-public/'
+    }
+    maven {
+        name = 'sonatype'
+        url = 'https://oss.sonatype.org/content/groups/public/'
+    }
+    // MythicMobs仓库
+    maven {
+        name = 'lumine'
+        url = 'https://mvn.lumine.io/repository/maven-public/'
+    }
+    // PlaceholderAPI仓库
+    maven {
+        name = 'placeholderapi'
+        url = 'https://repo.extendedclip.com/content/repositories/placeholderapi/'
+    }
+}
+
+dependencies {
+    compileOnly 'io.papermc.paper:paper-api:1.20.1-R0.1-SNAPSHOT'
+
+    // Vault API - 使用本地依赖
+    compileOnly files('libs/Vault.jar')
+
+    // MythicMobs API - 使用本地依赖
+    compileOnly files('libs/MythicMobs.jar')
+
+    // PlaceholderAPI - 使用本地依赖
+    compileOnly files('libs/PlaceholderAPI.jar')
+
+    // PlayerPoints - 使用本地依赖
+    compileOnly files('libs/PlayerPoints.jar')
+}
+
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+processResources {
+    def props = [version: version]
+    inputs.properties props
+    filteringCharset 'UTF-8'
+    filesMatching('plugin.yml') {
+        expand props
+    }
+}
+
+shadowJar {
+    archiveBaseName.set(project.name)
+    archiveClassifier.set('')
+    archiveVersion.set(project.version.toString())
+}
+
+tasks.build.dependsOn tasks.shadowJar
