@@ -26,7 +26,8 @@ import java.util.UUID;
 public class DeathManager {
 
     private final SagaDungeons plugin;
-    private final Map<UUID, Integer> deathCounts = new HashMap<>();
+    // 按副本ID分组存储每个玩家的死亡次数: Map<副本ID, Map<玩家UUID, 死亡次数>>
+    private final Map<String, Map<UUID, Integer>> dungeonDeathCounts = new HashMap<>();
 
     /**
      * 构造函数
@@ -76,7 +77,7 @@ public class DeathManager {
         }
 
         // 有死亡限制的情况，增加死亡次数
-        int deathCount = incrementDeathCount(player.getUniqueId());
+        int deathCount = incrementDeathCount(dungeonId, player.getUniqueId());
 
         // 检查是否达到死亡次数限制
         if (deathCount >= deathLimit) {
@@ -127,31 +128,53 @@ public class DeathManager {
     }
 
     /**
-     * 增加玩家死亡次数
+     * 增加玩家在指定副本中的死亡次数
+     * @param dungeonId 副本ID
      * @param playerUUID 玩家UUID
      * @return 当前死亡次数
      */
-    private int incrementDeathCount(UUID playerUUID) {
-        int count = deathCounts.getOrDefault(playerUUID, 0) + 1;
-        deathCounts.put(playerUUID, count);
+    private int incrementDeathCount(String dungeonId, UUID playerUUID) {
+        // 获取或创建该副本的死亡次数映射
+        Map<UUID, Integer> dungeonCounts = dungeonDeathCounts.computeIfAbsent(dungeonId, k -> new HashMap<>());
+
+        // 增加死亡次数
+        int count = dungeonCounts.getOrDefault(playerUUID, 0) + 1;
+        dungeonCounts.put(playerUUID, count);
         return count;
     }
 
     /**
-     * 重置玩家死亡次数
+     * 重置玩家在指定副本中的死亡次数
+     * @param dungeonId 副本ID
      * @param playerUUID 玩家UUID
      */
-    public void resetDeathCount(UUID playerUUID) {
-        deathCounts.remove(playerUUID);
+    public void resetDeathCount(String dungeonId, UUID playerUUID) {
+        Map<UUID, Integer> dungeonCounts = dungeonDeathCounts.get(dungeonId);
+        if (dungeonCounts != null) {
+            dungeonCounts.remove(playerUUID);
+        }
     }
 
     /**
-     * 获取玩家死亡次数
+     * 获取玩家在指定副本中的死亡次数
+     * @param dungeonId 副本ID
      * @param playerUUID 玩家UUID
      * @return 死亡次数
      */
-    public int getDeathCount(UUID playerUUID) {
-        return deathCounts.getOrDefault(playerUUID, 0);
+    public int getDeathCount(String dungeonId, UUID playerUUID) {
+        Map<UUID, Integer> dungeonCounts = dungeonDeathCounts.get(dungeonId);
+        if (dungeonCounts == null) {
+            return 0;
+        }
+        return dungeonCounts.getOrDefault(playerUUID, 0);
+    }
+
+    /**
+     * 清理指定副本的所有死亡次数记录
+     * @param dungeonId 副本ID
+     */
+    public void cleanupDungeonDeathCounts(String dungeonId) {
+        dungeonDeathCounts.remove(dungeonId);
     }
 
     /**

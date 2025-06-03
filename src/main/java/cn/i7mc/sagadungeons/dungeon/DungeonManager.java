@@ -223,6 +223,9 @@ public class DungeonManager {
         // 清理副本通关条件
         completionManager.cleanupDungeonConditions(dungeonId);
 
+        // 清理副本死亡次数记录
+        deathManager.cleanupDungeonDeathCounts(dungeonId);
+
         // 将所有玩家传送出副本
         for (Player player : world.getPlayers()) {
             // 获取玩家数据
@@ -244,7 +247,7 @@ public class DungeonManager {
             playerData.setCurrentDungeonId(null);
 
             // 发送消息通知玩家副本被管理员关闭
-            plugin.getConfigManager().getMessageManager().sendMessage(player, "command.death.admin-close",
+            plugin.getConfigManager().getMessageManager().sendMessage(player, "death.admin-close",
                     MessageUtil.createPlaceholders("id", dungeonId));
         }
 

@@ -124,7 +124,7 @@ dungeon:
 command:
   help:
     header: "&6=== SagaDungeons Player Help ==="
-    create: "&e/sd create <template> &7- Create a dungeon"
+    create: "&e/sd create <template> [player] &7- Create a dungeon (console can specify player)"
     list: "&e/sd list &7- List all dungeons"
     stats: "&e/sd stats [player] &7- View dungeon statistics"
     invite: "&e/sd invite <player> &7- Invite a player to the dungeon"
@@ -217,10 +217,14 @@ command:
 
   create: # Player command
     usage: "&cUsage: /sd create <template>"
+    console-usage: "&cUsage: /sd create <template> <player>"
     template-not-found: "&cTemplate &e%template% &cdoes not exist."
+    player-not-found: "&cCould not find player &e%player%&c."
     already-in-dungeon: "&cYou are already in a dungeon, please leave the current one first."
     cooldown: "&cYou need to wait &e%time% &cseconds before creating a dungeon again."
     success: "&aSuccessfully created dungeon &e%template%&a."
+    console-success: "&aSuccessfully created dungeon &e%template% &afor player &e%player%&a."
+    created-by-console: "&aAn administrator created dungeon &e%template% &afor you."
     fail: "&cFailed to create dungeon."
 
   list: # Player command

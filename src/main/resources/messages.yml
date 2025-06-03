@@ -101,7 +101,7 @@ dungeon:
       reached: "&c你已经达到死亡次数上限 &e%limit% &c次，已被踢出副本！"
     revive:
       item: "&a你使用了复活道具 &e%item%&a，已在副本中重生！"
-    admin-close: "&c副本 &e%id% &c已被管理员关闭，你已被传送出副本！"
+    admin-close: "&c副本 &e%id% &c被管理员关闭，你已被传送出副本！"
   reward:
     header: "&6=== 副本奖励 ==="
     entry: "&a- %description%"
@@ -124,7 +124,7 @@ dungeon:
 command:
   help:
     header: "&6=== SagaDungeons 玩家帮助 ==="
-    create: "&e/sd create <模板> &7- 创建一个副本"
+    create: "&e/sd create <模板> [玩家] &7- 创建一个副本（控制台可指定玩家）"
     list: "&e/sd list &7- 列出所有副本"
     stats: "&e/sd stats [玩家] &7- 查看副本统计数据"
     invite: "&e/sd invite <玩家> &7- 邀请玩家加入副本"
@@ -214,10 +214,14 @@ command:
 
   create:
     usage: "&c用法: /sd create <模板>"
+    console-usage: "&c用法: /sd create <模板> <玩家名>"
     template-not-found: "&c模板 &e%template% &c不存在。"
+    player-not-found: "&c找不到玩家 &e%player%&c。"
     already-in-dungeon: "&c你已经在一个副本中，请先离开当前副本。"
     cooldown: "&c你需要等待 &e%time% &c秒才能再次创建副本。"
     success: "&a成功创建副本 &e%template%&a。"
+    console-success: "&a成功为玩家 &e%player% &a创建副本 &e%template%&a。"
+    created-by-console: "&a管理员为你创建了副本 &e%template%&a。"
     fail: "&c创建副本失败。"
 
   list:
