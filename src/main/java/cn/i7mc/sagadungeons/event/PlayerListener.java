@@ -1,8 +1,11 @@
 package cn.i7mc.sagadungeons.event;
 
 import cn.i7mc.sagadungeons.SagaDungeons;
+import cn.i7mc.sagadungeons.dungeon.DungeonInstance;
 import cn.i7mc.sagadungeons.model.DungeonTemplate;
 import cn.i7mc.sagadungeons.model.PlayerData;
+import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -93,35 +96,40 @@ public class PlayerListener extends AbstractListener {
             String dungeonId = playerData.getCurrentDungeonId();
 
             // 获取副本实例
-            if (plugin.getDungeonManager().getDungeon(dungeonId) != null) {
+            DungeonInstance instance = plugin.getDungeonManager().getDungeon(dungeonId);
+            if (instance != null) {
                 // 获取副本模板
-                String templateName = plugin.getDungeonManager().getDungeon(dungeonId).getTemplateName();
-
-                // 获取副本模板
-                if (plugin.getConfigManager().getTemplateManager().hasTemplate(templateName)) {
-                    // 获取模板
-                    DungeonTemplate template = plugin.getConfigManager().getTemplateManager().getTemplate(templateName);
-
-                    // 检查是否有死亡次数限制
-                    if (template.hasDeathLimit()) {
-                        // 获取玩家死亡次数
-                        int deathCount = plugin.getDungeonManager().getDeathManager().getDeathCount(player.getUniqueId());
-
-                        // 检查是否达到死亡次数限制
-                        if (deathCount >= template.getDeathLimit()) {
-                            // 检查是否有复活道具
-                            if (template.hasReviveItem()) {
-                                // 不做处理，由死亡管理器处理
-                                return;
-                            }
-
-                            // 离开副本
-                            plugin.getDungeonManager().leaveDungeon(player);
-                            return;
-                        }
+                DungeonTemplate template = plugin.getConfigManager().getTemplateManager().getTemplate(instance.getTemplateName());
+                if (template != null) {
+                    // 设置重生位置
+                    Location spawnLocation = getSpawnLocation(template, instance.getWorld());
+                    if (spawnLocation != null) {
+                        event.setRespawnLocation(spawnLocation);
                     }
                 }
             }
         }
+    }
+
+    /**
+     * 获取重生位置
+     * @param template 副本模板
+     * @param world 副本世界
+     * @return 重生位置
+     */
+    private Location getSpawnLocation(DungeonTemplate template, World world) {
+        // 检查模板是否有指定重生点
+        if (template.hasSpawnLocation()) {
+            // 使用模板中的重生点（不包含世界名）
+            Location spawnLocation = cn.i7mc.sagadungeons.util.LocationUtil.stringToLocationWithoutWorld(template.getSpawnLocation(), world);
+
+            // 如果重生点可用，返回该位置
+            if (spawnLocation != null) {
+                return spawnLocation;
+            }
+        }
+
+        // 使用世界默认出生点
+        return world.getSpawnLocation();
     }
 }

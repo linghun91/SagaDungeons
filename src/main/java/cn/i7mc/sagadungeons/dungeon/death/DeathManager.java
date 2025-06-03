@@ -65,16 +65,21 @@ public class DeathManager {
             return true;
         }
 
-        // 检查是否有死亡次数限制
-        if (!template.hasDeathLimit()) {
+        // 检查死亡限制设置
+        int deathLimit = template.getDeathLimit();
+
+        // 如果死亡限制为0，表示无死亡限制，直接在副本内重生
+        if (deathLimit == 0) {
+            // 传送到副本出生点
+            respawnInDungeon(player, instance);
             return true;
         }
 
-        // 增加死亡次数
+        // 有死亡限制的情况，增加死亡次数
         int deathCount = incrementDeathCount(player.getUniqueId());
 
         // 检查是否达到死亡次数限制
-        if (deathCount >= template.getDeathLimit()) {
+        if (deathCount >= deathLimit) {
             // 检查是否有复活道具
             if (template.hasReviveItem() && checkReviveItem(player, template)) {
                 // 消耗复活道具
@@ -102,7 +107,7 @@ public class DeathManager {
 
             // 发送消息
             MessageUtil.sendMessage(player, "dungeon.death.limit.reached",
-                    MessageUtil.createPlaceholders("limit", String.valueOf(template.getDeathLimit())));
+                    MessageUtil.createPlaceholders("limit", String.valueOf(deathLimit)));
 
             // 踢出副本
             plugin.getDungeonManager().leaveDungeon(player);
@@ -112,7 +117,7 @@ public class DeathManager {
             // 发送消息
             MessageUtil.sendMessage(player, "dungeon.death.count",
                     MessageUtil.createPlaceholders("count", String.valueOf(deathCount),
-                            "limit", String.valueOf(template.getDeathLimit())));
+                            "limit", String.valueOf(deathLimit)));
 
             // 传送到副本出生点
             respawnInDungeon(player, instance);
