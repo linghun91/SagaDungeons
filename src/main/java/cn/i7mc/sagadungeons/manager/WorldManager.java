@@ -267,6 +267,9 @@ public class WorldManager {
                 player.teleport(Bukkit.getWorlds().get(0).getSpawnLocation());
             }
 
+            // 恢复玩家游戏模式
+            plugin.getDungeonManager().restorePlayerGameMode(player);
+
             // 清除玩家当前副本
             playerData.setCurrentDungeonId(null);
         }

@@ -10,6 +10,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
@@ -131,5 +132,26 @@ public class PlayerListener extends AbstractListener {
 
         // 使用世界默认出生点
         return world.getSpawnLocation();
+    }
+
+    /**
+     * 处理玩家世界切换事件
+     * @param event 玩家世界切换事件
+     */
+    @EventHandler
+    public void onPlayerChangedWorld(PlayerChangedWorldEvent event) {
+        Player player = event.getPlayer();
+        World fromWorld = event.getFrom();
+
+        // 检查玩家是否从副本世界离开
+        if (plugin.getWorldManager().isDungeonWorld(fromWorld.getName())) {
+            // 获取玩家数据
+            PlayerData playerData = plugin.getDungeonManager().getPlayerData(player.getUniqueId());
+
+            // 如果玩家不再在副本中，恢复游戏模式
+            if (!playerData.isInDungeon()) {
+                plugin.getDungeonManager().restorePlayerGameMode(player);
+            }
+        }
     }
 }

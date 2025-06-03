@@ -82,6 +82,10 @@ public class TemplateManager {
             template.setDisplayName(config.getString("displayName", templateName));
             template.setDefaultTimeout(config.getInt("defaultTimeout", plugin.getConfigManager().getDefaultTimeout()));
 
+            // 加载游戏模式设置
+            template.setForceGameMode(config.getBoolean("forceGameMode", true));
+            template.setGameMode(config.getString("gameMode", "ADVENTURE"));
+
             // 加载创建条件
             ConfigurationSection conditionsSection = config.getConfigurationSection("creationConditions");
             if (conditionsSection != null) {
@@ -249,6 +253,10 @@ public class TemplateManager {
         config.set("name", template.getName());
         config.set("displayName", template.getDisplayName());
         config.set("defaultTimeout", template.getDefaultTimeout());
+
+        // 保存游戏模式设置
+        config.set("forceGameMode", template.isForceGameMode());
+        config.set("gameMode", template.getGameMode());
 
         // 保存创建条件
         ConfigurationSection conditionsSection = config.createSection("creationConditions");

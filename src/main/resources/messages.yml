@@ -95,6 +95,31 @@ dungeon:
     kill-count:
       description: "&7击杀 &e%count% &7个怪物"
       progress: "&7已击杀: &e%current%/%target%"
+  death:
+    count: "&c你已经死亡 &e%count%/%limit% &c次！"
+    limit:
+      reached: "&c你已经达到死亡次数上限 &e%limit% &c次，已被踢出副本！"
+    revive:
+      item: "&a你使用了复活道具 &e%item%&a，已在副本中重生！"
+    admin-close: "&c副本 &e%id% &c已被管理员关闭，你已被传送出副本！"
+  reward:
+    header: "&6=== 副本奖励 ==="
+    entry: "&a- %description%"
+    footer: "&6==============="
+    money:
+      description: "&a金币: &e%amount%"
+    points:
+      description: "&a点券: &e%amount%"
+    experience:
+      description: "&a经验: &e%amount%"
+    item:
+      description: "&a物品: &e%item% x%amount%"
+    command:
+      description: "&a特殊奖励"
+    time:
+      header: "&6=== 时间奖励 ==="
+      description: "&a快速通关奖励 (用时: &e%time%&a)"
+      footer: "&6==============="
 
 command:
   help:
@@ -256,28 +281,3 @@ command:
       none: "&7尚未完成任何副本"
     footer: "&6======================"
 
-  death:
-    count: "&c你已经死亡 &e%count%/%limit% &c次！"
-    limit:
-      reached: "&c你已经达到死亡次数上限 &e%limit% &c次，已被踢出副本！"
-    revive:
-      item: "&a你使用了复活道具 &e%item%&a，已在副本中重生！"
-    admin-close: "&c副本 &e%id% &c已被管理员关闭，你已被传送出副本！"
-  reward:
-    header: "&6=== 副本奖励 ==="
-    entry: "&a- %description%"
-    footer: "&6==============="
-    money:
-      description: "&a金币: &e%amount%"
-    points:
-      description: "&a点券: &e%amount%"
-    experience:
-      description: "&a经验: &e%amount%"
-    item:
-      description: "&a物品: &e%item% x%amount%"
-    command:
-      description: "&a特殊奖励"
-    time:
-      header: "&6=== 时间奖励 ==="
-      description: "&a快速通关奖励 (用时: &e%time%&a)"
-      footer: "&6==============="

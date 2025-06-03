@@ -95,6 +95,31 @@ dungeon:
     kill-count:
       description: "&7Kill &e%count% &7monsters"
       progress: "&7Killed: &e%current%/%target%"
+  death:
+    count: "&cYou have died &e%count%/%limit% &ctimes!"
+    limit:
+      reached: "&cYou have reached the death limit of &e%limit% &ctimes and have been kicked from the dungeon!"
+    revive:
+      item: "&aYou used a revive item &e%item%&a and have respawned in the dungeon!"
+    admin-close: "&cDungeon &e%id% &cwas closed by an admin, you have been teleported out!"
+  reward:
+    header: "&6=== Dungeon Rewards ==="
+    entry: "&a- %description%"
+    footer: "&6==============="
+    money:
+      description: "&aCoins: &e%amount%"
+    points:
+      description: "&aPoints: &e%amount%"
+    experience:
+      description: "&aExperience: &e%amount%"
+    item:
+      description: "&aItem: &e%item% x%amount%"
+    command:
+      description: "&aSpecial Reward"
+    time:
+      header: "&6=== Time Rewards ==="
+      description: "&aSpeed Completion Reward (Time taken: &e%time%&a)"
+      footer: "&6==============="
 
 command:
   help:
@@ -259,28 +284,3 @@ command:
       none: "&7No dungeons completed yet"
     footer: "&6======================"
 
-  death:
-    count: "&cYou have died &e%count%/%limit% &ctimes!"
-    limit:
-      reached: "&cYou have reached the death limit of &e%limit% &ctimes and have been kicked from the dungeon!"
-    revive:
-      item: "&aYou used a revive item &e%item%&a and have respawned in the dungeon!"
-    admin-close: "&cDungeon &e%id% &cwas closed by an admin, you have been teleported out!"
-  reward:
-    header: "&6=== Dungeon Rewards ==="
-    entry: "&a- %description%"
-    footer: "&6==============="
-    money:
-      description: "&aCoins: &e%amount%"
-    points:
-      description: "&aPoints: &e%amount%"
-    experience:
-      description: "&aExperience: &e%amount%"
-    item:
-      description: "&aItem: &e%item% x%amount%"
-    command:
-      description: "&aSpecial Reward"
-    time:
-      header: "&6=== Time Rewards ==="
-      description: "&aSpeed Completion Reward (Time taken: &e%time%&a)"
-      footer: "&6==============="

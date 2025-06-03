@@ -37,6 +37,10 @@ public class DungeonTemplate {
     private boolean levelEnabled = true;
     private boolean itemsEnabled = true;
 
+    // 游戏模式设置
+    private boolean forceGameMode = true; // 是否强制游戏模式
+    private String gameMode = "ADVENTURE"; // 强制的游戏模式
+
     /**
      * 构造函数
      * @param name 模板名称
@@ -466,5 +470,37 @@ public class DungeonTemplate {
         // 使用TreeMap的floorEntry方法找到小于等于完成时间的最大时间限制
         Map.Entry<Integer, List<String>> entry = timeRewards.floorEntry(completionTimeSeconds);
         return entry != null ? entry.getValue() : null;
+    }
+
+    /**
+     * 检查是否强制游戏模式
+     * @return 是否强制游戏模式
+     */
+    public boolean isForceGameMode() {
+        return forceGameMode;
+    }
+
+    /**
+     * 设置是否强制游戏模式
+     * @param forceGameMode 是否强制游戏模式
+     */
+    public void setForceGameMode(boolean forceGameMode) {
+        this.forceGameMode = forceGameMode;
+    }
+
+    /**
+     * 获取强制的游戏模式
+     * @return 游戏模式字符串
+     */
+    public String getGameMode() {
+        return gameMode;
+    }
+
+    /**
+     * 设置强制的游戏模式
+     * @param gameMode 游戏模式字符串
+     */
+    public void setGameMode(String gameMode) {
+        this.gameMode = gameMode;
     }
 }

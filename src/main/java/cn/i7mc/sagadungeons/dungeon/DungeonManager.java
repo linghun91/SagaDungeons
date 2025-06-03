@@ -166,6 +166,9 @@ public class DungeonManager {
 
                     player.teleport(spawnLocation);
 
+                    // 设置游戏模式
+                    setPlayerGameMode(player, template);
+
                     // 启动超时任务
                     instance.startTimeoutTask();
                 }
@@ -233,6 +236,9 @@ public class DungeonManager {
                 // 如果没有上次位置，传送到主世界出生点
                 player.teleport(Bukkit.getWorlds().get(0).getSpawnLocation());
             }
+
+            // 恢复玩家游戏模式
+            restorePlayerGameMode(player);
 
             // 清除玩家当前副本
             playerData.setCurrentDungeonId(null);
@@ -348,6 +354,9 @@ public class DungeonManager {
 
         player.teleport(spawnLocation);
 
+        // 设置游戏模式
+        setPlayerGameMode(player, template);
+
         return true;
     }
 
@@ -376,6 +385,9 @@ public class DungeonManager {
             // 如果没有上次位置，传送到主世界出生点
             player.teleport(Bukkit.getWorlds().get(0).getSpawnLocation());
         }
+
+        // 恢复玩家游戏模式
+        restorePlayerGameMode(player);
 
         // 清除玩家当前副本
         playerData.setCurrentDungeonId(null);
@@ -718,5 +730,50 @@ public class DungeonManager {
         Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, this::saveAllData, 6000L, 6000L);
     }
 
+    /**
+     * 设置玩家游戏模式
+     * @param player 玩家
+     * @param template 副本模板
+     */
+    private void setPlayerGameMode(Player player, DungeonTemplate template) {
+        // 检查是否启用强制游戏模式
+        if (!template.isForceGameMode()) {
+            return;
+        }
+
+        // 获取玩家数据
+        PlayerData playerData = getPlayerData(player.getUniqueId());
+
+        // 保存玩家当前游戏模式
+        playerData.setOriginalGameMode(player.getGameMode());
+
+        // 设置新的游戏模式
+        try {
+            org.bukkit.GameMode gameMode = org.bukkit.GameMode.valueOf(template.getGameMode().toUpperCase());
+            player.setGameMode(gameMode);
+        } catch (IllegalArgumentException e) {
+            // 如果游戏模式无效，默认使用冒险模式
+            player.setGameMode(org.bukkit.GameMode.ADVENTURE);
+        }
+    }
+
+    /**
+     * 恢复玩家游戏模式
+     * @param player 玩家
+     */
+    public void restorePlayerGameMode(Player player) {
+        // 获取玩家数据
+        PlayerData playerData = getPlayerData(player.getUniqueId());
+
+        // 获取原始游戏模式
+        org.bukkit.GameMode originalGameMode = playerData.getOriginalGameMode();
+
+        // 如果有保存的原始游戏模式，则恢复
+        if (originalGameMode != null) {
+            player.setGameMode(originalGameMode);
+            // 清除保存的游戏模式
+            playerData.setOriginalGameMode(null);
+        }
+    }
 
 }

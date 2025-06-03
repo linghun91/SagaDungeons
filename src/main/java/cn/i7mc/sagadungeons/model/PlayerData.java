@@ -1,6 +1,7 @@
 package cn.i7mc.sagadungeons.model;
 
 import cn.i7mc.sagadungeons.util.LocationUtil;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
 
@@ -22,6 +23,7 @@ public class PlayerData {
     private int totalCompleted = 0;
     private int totalCreated = 0;
     private int totalJoined = 0;
+    private GameMode originalGameMode; // 玩家进入副本前的游戏模式
 
     /**
      * 构造函数
@@ -213,6 +215,22 @@ public class PlayerData {
     }
 
     /**
+     * 获取原始游戏模式
+     * @return 原始游戏模式
+     */
+    public GameMode getOriginalGameMode() {
+        return originalGameMode;
+    }
+
+    /**
+     * 设置原始游戏模式
+     * @param originalGameMode 原始游戏模式
+     */
+    public void setOriginalGameMode(GameMode originalGameMode) {
+        this.originalGameMode = originalGameMode;
+    }
+
+    /**
      * 保存到配置部分
      * @param section 配置部分
      */
@@ -224,6 +242,11 @@ public class PlayerData {
         // 保存上次位置
         if (lastLocation != null) {
             section.set("lastLocation", LocationUtil.locationToString(lastLocation));
+        }
+
+        // 保存原始游戏模式
+        if (originalGameMode != null) {
+            section.set("originalGameMode", originalGameMode.name());
         }
 
         // 保存统计数据
@@ -250,6 +273,16 @@ public class PlayerData {
         String locationString = section.getString("lastLocation");
         if (locationString != null) {
             lastLocation = LocationUtil.stringToLocation(locationString);
+        }
+
+        // 加载原始游戏模式
+        String gameModeString = section.getString("originalGameMode");
+        if (gameModeString != null) {
+            try {
+                originalGameMode = GameMode.valueOf(gameModeString);
+            } catch (IllegalArgumentException e) {
+                // 忽略无效的游戏模式
+            }
         }
 
         // 加载统计数据
