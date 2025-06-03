@@ -211,6 +211,21 @@ command:
       dungeon-not-found: "&c找不到你所在的副本。"
       template-not-found: "&c找不到副本模板。"
       unknown: "&c未知子命令: &e%command%&c。"
+      set:
+        usage: "&c用法: /sd admin spawner set <刷怪点ID> <怪物类型> [数量] [冷却时间]"
+        invalid-mob-type: "&c无效的怪物类型: &e%mob%&c。"
+        invalid-amount: "&c无效的数量，必须是大于0的整数。"
+        invalid-cooldown: "&c无效的冷却时间，必须是大于等于0的整数。"
+        success: "&a成功设置刷怪点 &e%id%&a，怪物类型: &e%mob%&a，数量: &e%amount%&a，冷却时间: &e%cooldown%&a秒。"
+      remove:
+        usage: "&c用法: /sd admin spawner remove <刷怪点ID>"
+        success: "&a成功删除刷怪点 &e%id%&a。"
+        not-found: "&c找不到刷怪点 &e%id%&c。"
+      list:
+        empty: "&c当前模板没有设置任何刷怪点。"
+        header: "&6=== 刷怪点列表 ==="
+        entry: "&e%id% &7- 怪物: &6%mob% &7- 数量: &e%amount% &7- 冷却: &e%cooldown%&7秒"
+        footer: "&6==============="
 
   create:
     usage: "&c用法: /sd create <模板>"

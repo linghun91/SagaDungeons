@@ -214,6 +214,21 @@ command:
       dungeon-not-found: "&cCould not find the dungeon you are in."
       template-not-found: "&cCould not find dungeon template."
       unknown: "&cUnknown subcommand: &e%command%&c."
+      set:
+        usage: "&cUsage: /sd admin spawner set <spawner_id> <mob_type> [amount] [cooldown]"
+        invalid-mob-type: "&cInvalid mob type: &e%mob%&c."
+        invalid-amount: "&cInvalid amount, must be a positive integer."
+        invalid-cooldown: "&cInvalid cooldown, must be a non-negative integer."
+        success: "&aSuccessfully set spawner &e%id%&a, mob type: &e%mob%&a, amount: &e%amount%&a, cooldown: &e%cooldown%&a seconds."
+      remove:
+        usage: "&cUsage: /sd admin spawner remove <spawner_id>"
+        success: "&aSuccessfully removed spawner &e%id%&a."
+        not-found: "&cSpawner &e%id%&c not found."
+      list:
+        empty: "&cNo spawners set for current template."
+        header: "&6=== Spawner List ==="
+        entry: "&e%id% &7- Mob: &6%mob% &7- Amount: &e%amount% &7- Cooldown: &e%cooldown%&7s"
+        footer: "&6==============="
 
   create: # Player command
     usage: "&cUsage: /sd create <template>"

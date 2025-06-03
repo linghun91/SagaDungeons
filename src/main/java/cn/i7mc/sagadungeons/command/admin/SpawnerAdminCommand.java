@@ -31,7 +31,7 @@ public class SpawnerAdminCommand extends AbstractCommand {
     public void execute(CommandSender sender, String[] args) {
         // 检查参数
         if (args.length < 1) {
-            sendMessage(sender, "command.spawner.usage");
+            sendMessage(sender, "command.admin.spawner.usage");
             return;
         }
 
@@ -44,7 +44,7 @@ public class SpawnerAdminCommand extends AbstractCommand {
         // 获取当前副本
         String dungeonId = plugin.getDungeonManager().getCurrentDungeonId(player);
         if (dungeonId == null) {
-            sendMessage(sender, "command.spawner.not-in-dungeon");
+            sendMessage(sender, "command.admin.spawner.not-in-dungeon");
             return;
         }
 
@@ -52,7 +52,7 @@ public class SpawnerAdminCommand extends AbstractCommand {
         String templateName = plugin.getDungeonManager().getDungeon(dungeonId).getTemplateName();
         DungeonTemplate template = plugin.getConfigManager().getTemplateManager().getTemplate(templateName);
         if (template == null) {
-            sendMessage(sender, "command.spawner.template-not-found");
+            sendMessage(sender, "command.admin.spawner.template-not-found");
             return;
         }
 
@@ -61,7 +61,7 @@ public class SpawnerAdminCommand extends AbstractCommand {
             case "set":
                 // 设置刷怪点
                 if (args.length < 3) {
-                    sendMessage(sender, "command.spawner.set.usage");
+                    sendMessage(sender, "command.admin.spawner.set.usage");
                     return;
                 }
 
@@ -75,7 +75,7 @@ public class SpawnerAdminCommand extends AbstractCommand {
                 if (plugin.getHookManager().isMythicMobsAvailable()) {
                     // 检查怪物类型是否存在
                     if (!plugin.getHookManager().getMythicMobsHook().isMobTypeExists(mobType)) {
-                        sendMessage(sender, "command.spawner.set.invalid-mob-type",
+                        sendMessage(sender, "command.admin.spawner.set.invalid-mob-type",
                                 MessageUtil.createPlaceholders("mob", mobType));
                         return;
                     }
@@ -87,14 +87,14 @@ public class SpawnerAdminCommand extends AbstractCommand {
                     try {
                         amount = Integer.parseInt(args[3]);
                     } catch (NumberFormatException e) {
-                        sendMessage(sender, "command.spawner.set.invalid-amount");
+                        sendMessage(sender, "command.admin.spawner.set.invalid-amount");
                         return;
                     }
                 }
 
                 // 检查数量是否有效
                 if (amount <= 0) {
-                    sendMessage(sender, "command.spawner.set.invalid-amount");
+                    sendMessage(sender, "command.admin.spawner.set.invalid-amount");
                     return;
                 }
 
@@ -104,14 +104,14 @@ public class SpawnerAdminCommand extends AbstractCommand {
                     try {
                         cooldown = Integer.parseInt(args[4]);
                     } catch (NumberFormatException e) {
-                        sendMessage(sender, "command.spawner.set.invalid-cooldown");
+                        sendMessage(sender, "command.admin.spawner.set.invalid-cooldown");
                         return;
                     }
                 }
 
                 // 检查冷却时间是否有效
                 if (cooldown < 0) {
-                    sendMessage(sender, "command.spawner.set.invalid-cooldown");
+                    sendMessage(sender, "command.admin.spawner.set.invalid-cooldown");
                     return;
                 }
 
@@ -134,7 +134,7 @@ public class SpawnerAdminCommand extends AbstractCommand {
                 }
 
                 // 发送消息
-                sendMessage(sender, "command.spawner.set.success",
+                sendMessage(sender, "command.admin.spawner.set.success",
                         MessageUtil.createPlaceholders("id", spawnerId,
                                 "mob", mobType,
                                 "amount", String.valueOf(amount),
@@ -143,7 +143,7 @@ public class SpawnerAdminCommand extends AbstractCommand {
             case "remove":
                 // 删除刷怪点
                 if (args.length < 2) {
-                    sendMessage(sender, "command.spawner.remove.usage");
+                    sendMessage(sender, "command.admin.spawner.remove.usage");
                     return;
                 }
 
@@ -156,27 +156,27 @@ public class SpawnerAdminCommand extends AbstractCommand {
                     plugin.getConfigManager().getTemplateManager().saveTemplate(template);
 
                     // 发送消息
-                    sendMessage(sender, "command.spawner.remove.success",
+                    sendMessage(sender, "command.admin.spawner.remove.success",
                             MessageUtil.createPlaceholders("id", removeId));
                 } else {
                     // 发送消息
-                    sendMessage(sender, "command.spawner.remove.not-found",
+                    sendMessage(sender, "command.admin.spawner.remove.not-found",
                             MessageUtil.createPlaceholders("id", removeId));
                 }
                 break;
             case "list":
                 // 列出刷怪点
                 if (template.getMobSpawners().isEmpty()) {
-                    sendMessage(sender, "command.spawner.list.empty");
+                    sendMessage(sender, "command.admin.spawner.list.empty");
                     return;
                 }
 
                 // 发送标题
-                sendMessage(sender, "command.spawner.list.header");
+                sendMessage(sender, "command.admin.spawner.list.header");
 
                 // 发送刷怪点列表
                 for (String id : template.getMobSpawners().keySet()) {
-                    sendMessage(sender, "command.spawner.list.entry",
+                    sendMessage(sender, "command.admin.spawner.list.entry",
                             MessageUtil.createPlaceholders("id", id,
                                     "mob", template.getMobSpawners().get(id).getMobType(),
                                     "amount", String.valueOf(template.getMobSpawners().get(id).getAmount()),
@@ -184,11 +184,11 @@ public class SpawnerAdminCommand extends AbstractCommand {
                 }
 
                 // 发送页脚
-                sendMessage(sender, "command.spawner.list.footer");
+                sendMessage(sender, "command.admin.spawner.list.footer");
                 break;
             default:
                 // 未知命令
-                sendMessage(sender, "command.spawner.unknown",
+                sendMessage(sender, "command.admin.spawner.unknown",
                         MessageUtil.createPlaceholders("command", subCommand));
                 break;
         }
