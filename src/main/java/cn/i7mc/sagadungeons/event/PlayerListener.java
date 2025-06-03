@@ -157,14 +157,37 @@ public class PlayerListener extends AbstractListener {
     public void onPlayerChangedWorld(PlayerChangedWorldEvent event) {
         Player player = event.getPlayer();
         World fromWorld = event.getFrom();
+        World toWorld = player.getWorld();
 
         // 检查玩家是否从副本世界离开
         if (plugin.getWorldManager().isDungeonWorld(fromWorld.getName())) {
             // 获取玩家数据
             PlayerData playerData = plugin.getDungeonManager().getPlayerData(player.getUniqueId());
 
-            // 如果玩家不再在副本中，恢复游戏模式
-            if (!playerData.isInDungeon()) {
+            // 检查玩家是否在副本中且目标世界不是副本世界
+            if (playerData.isInDungeon() && !plugin.getWorldManager().isDungeonWorld(toWorld.getName())) {
+                // 玩家通过其他方式离开了副本世界，自动清理副本状态
+                String dungeonId = playerData.getCurrentDungeonId();
+
+                // 清除玩家当前副本状态
+                playerData.setCurrentDungeonId(null);
+
+                // 恢复玩家游戏模式
+                plugin.getDungeonManager().restorePlayerGameMode(player);
+
+                // 清除床重生位置，避免残留的床重生位置影响后续游戏
+                player.setBedSpawnLocation(null, true);
+
+                // 检查副本是否为空，如果为空则删除副本
+                if (dungeonId != null) {
+                    cn.i7mc.sagadungeons.dungeon.DungeonInstance instance = plugin.getDungeonManager().getDungeon(dungeonId);
+                    if (instance != null && instance.getWorld() != null && instance.getWorld().getPlayers().isEmpty()) {
+                        // 如果副本为空，删除副本
+                        plugin.getDungeonManager().deleteDungeon(dungeonId);
+                    }
+                }
+            } else if (!playerData.isInDungeon()) {
+                // 如果玩家不再在副本中，恢复游戏模式
                 plugin.getDungeonManager().restorePlayerGameMode(player);
             }
         }
