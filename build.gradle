@@ -4,7 +4,59 @@ plugins {
 }
 
 group = 'cn.i7mc'
-version = '1.0.0'
+
+// 版本管理
+def versionFile = file('version.properties')
+def currentVersion = '1.1.0.1'
+
+// 读取当前版本
+if (versionFile.exists()) {
+    def props = new Properties()
+    versionFile.withInputStream { props.load(it) }
+    currentVersion = props.getProperty('version', '1.1.0.1')
+}
+
+// 自动迭代版本号
+def getNextVersion(String currentVer) {
+    def versionParts = currentVer.split('\\.')
+    if (versionParts.length == 4) {
+        def major = versionParts[0] as int
+        def minor = versionParts[1] as int
+        def patch = versionParts[2] as int
+        def build = versionParts[3] as int
+
+        // 迭代版本号：第四位+1
+        build++
+
+        return "${major}.${minor}.${patch}.${build}"
+    }
+    return currentVer
+}
+
+// 获取新版本号并立即更新
+def newVersion = getNextVersion(currentVersion)
+
+// 更新 version.properties
+def versionProps = new Properties()
+versionProps.setProperty('version', newVersion)
+versionFile.withOutputStream { versionProps.store(it, 'Auto-incremented version') }
+
+// 设置项目版本为新版本
+version newVersion
+
+// 更新 plugin.yml 中的版本
+def updatePluginYmlVersionAtInit(String ver) {
+    def pluginYmlFile = file('src/main/resources/plugin.yml')
+    if (pluginYmlFile.exists()) {
+        def content = pluginYmlFile.getText('UTF-8')
+        def updatedContent = content.replaceAll(/(?m)^version:\s*['"]?[^'"]*['"]?/, "version: '${ver}'")
+        pluginYmlFile.setText(updatedContent, 'UTF-8')
+        println "plugin.yml 版本已更新为: ${ver}"
+    }
+}
+
+updatePluginYmlVersionAtInit(newVersion)
+println "版本已从 ${currentVersion} 更新到 ${newVersion}"
 
 java {
     toolchain {
