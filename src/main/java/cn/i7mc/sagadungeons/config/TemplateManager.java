@@ -80,6 +80,7 @@ public class TemplateManager {
             // 创建模板对象
             DungeonTemplate template = new DungeonTemplate(templateName);
             template.setDisplayName(config.getString("displayName", templateName));
+            template.setWorldDisplay(config.getString("worldDisplay", templateName));
             template.setDefaultTimeout(config.getInt("defaultTimeout", plugin.getConfigManager().getDefaultTimeout()));
 
             // 加载游戏模式设置
@@ -252,6 +253,7 @@ public class TemplateManager {
         // 保存基本信息
         config.set("name", template.getName());
         config.set("displayName", template.getDisplayName());
+        config.set("worldDisplay", template.getWorldDisplay());
         config.set("defaultTimeout", template.getDefaultTimeout());
 
         // 保存游戏模式设置

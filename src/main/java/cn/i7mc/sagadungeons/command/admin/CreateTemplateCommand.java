@@ -63,7 +63,10 @@ public class CreateTemplateCommand extends AbstractCommand {
         DungeonTemplate template = new DungeonTemplate(templateName);
 
         // 设置显示名称
-        template.setDisplayName("&6" + templateName);
+        template.setDisplayName(templateName);
+
+        // 设置世界显示名称
+        template.setWorldDisplay(templateName);
 
         // 设置默认超时时间
         template.setDefaultTimeout(plugin.getConfigManager().getDefaultTimeout());

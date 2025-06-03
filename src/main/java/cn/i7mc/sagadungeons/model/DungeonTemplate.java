@@ -16,6 +16,7 @@ public class DungeonTemplate {
 
     private final String name;
     private String displayName;
+    private String worldDisplay; // 世界显示名称，用于占位符
     private int defaultTimeout;
     private double moneyCost;
     private int pointsCost;
@@ -73,6 +74,22 @@ public class DungeonTemplate {
      */
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
+    }
+
+    /**
+     * 获取世界显示名称
+     * @return 世界显示名称
+     */
+    public String getWorldDisplay() {
+        return worldDisplay;
+    }
+
+    /**
+     * 设置世界显示名称
+     * @param worldDisplay 世界显示名称
+     */
+    public void setWorldDisplay(String worldDisplay) {
+        this.worldDisplay = worldDisplay;
     }
 
     /**

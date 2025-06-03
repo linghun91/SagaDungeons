@@ -3,6 +3,7 @@
 # 基本信息
 name: "example"                # 模板名称（必须与文件夹名称相同）
 displayName: "&6示例副本"       # 显示名称（支持颜色代码）
+worldDisplay: "&6深渊龙穴"      # 世界显示名称（用于%sd_display%占位符）
 description: "这是一个示例副本，用于展示SagaDungeons的功能。" # 描述
 defaultTimeout: 1800           # 默认超时时间（秒）
 maxPlayers: 5                  # 最大玩家数
