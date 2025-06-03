@@ -17,7 +17,8 @@ import java.util.*;
 public class CompletionManager {
 
     private final SagaDungeons plugin;
-    private final Map<String, List<CompletionCondition>> dungeonConditions = new HashMap<>();
+    private final Map<String, ConfigurationSection> templateConditionConfigs = new HashMap<>();
+    private final Map<String, List<CompletionCondition>> dungeonInstanceConditions = new HashMap<>();
 
     /**
      * 构造函数
@@ -28,11 +29,26 @@ public class CompletionManager {
     }
 
     /**
-     * 加载副本通关条件
+     * 加载副本通关条件配置
      * @param template 副本模板
      * @param section 配置部分
      */
     public void loadCompletionConditions(DungeonTemplate template, ConfigurationSection section) {
+        if (section == null) {
+            return;
+        }
+
+        // 存储配置，用于后续为每个副本实例创建独立的条件
+        templateConditionConfigs.put(template.getName(), section);
+    }
+
+    /**
+     * 为副本实例创建通关条件
+     * @param dungeonId 副本ID
+     * @param templateName 模板名称
+     */
+    public void createConditionsForDungeon(String dungeonId, String templateName) {
+        ConfigurationSection section = templateConditionConfigs.get(templateName);
         if (section == null) {
             return;
         }
@@ -44,10 +60,10 @@ public class CompletionManager {
         if (compositeSection != null) {
             String type = compositeSection.getString("type", "AND");
             int priority = compositeSection.getInt("priority", 0);
-            
+
             CompletionType compositeType = type.equalsIgnoreCase("OR") ? CompletionType.OR : CompletionType.AND;
             CompositeCondition compositeCondition = new CompositeCondition(plugin, compositeType, priority);
-            
+
             // 加载子条件
             ConfigurationSection conditionsSection = compositeSection.getConfigurationSection("conditions");
             if (conditionsSection != null) {
@@ -61,7 +77,7 @@ public class CompletionManager {
                     }
                 }
             }
-            
+
             if (!compositeCondition.getConditions().isEmpty()) {
                 conditions.add(compositeCondition);
             }
@@ -82,7 +98,7 @@ public class CompletionManager {
                 return Integer.compare(p2, p1); // 优先级高的排在前面
             });
 
-            dungeonConditions.put(template.getName(), conditions);
+            dungeonInstanceConditions.put(dungeonId, conditions);
         }
     }
 
@@ -135,12 +151,12 @@ public class CompletionManager {
     }
 
     /**
-     * 获取副本通关条件
-     * @param templateName 模板名称
+     * 获取副本实例的通关条件
+     * @param dungeonId 副本ID
      * @return 通关条件列表
      */
-    public List<CompletionCondition> getCompletionConditions(String templateName) {
-        return dungeonConditions.getOrDefault(templateName, new ArrayList<>());
+    public List<CompletionCondition> getCompletionConditions(String dungeonId) {
+        return dungeonInstanceConditions.getOrDefault(dungeonId, new ArrayList<>());
     }
 
     /**
@@ -149,11 +165,11 @@ public class CompletionManager {
      * @return 是否完成
      */
     public boolean checkCompletion(DungeonInstance instance) {
-        // 获取副本模板名称
-        String templateName = instance.getTemplateName();
+        // 获取副本ID
+        String dungeonId = instance.getId();
 
         // 获取通关条件
-        List<CompletionCondition> conditions = getCompletionConditions(templateName);
+        List<CompletionCondition> conditions = getCompletionConditions(dungeonId);
 
         // 如果没有条件，直接返回false
         if (conditions.isEmpty()) {
@@ -199,11 +215,8 @@ public class CompletionManager {
             return;
         }
 
-        // 获取副本模板名称
-        String templateName = instance.getTemplateName();
-
         // 获取通关条件
-        List<CompletionCondition> conditions = getCompletionConditions(templateName);
+        List<CompletionCondition> conditions = getCompletionConditions(dungeonId);
 
         // 处理事件
         for (CompletionCondition condition : conditions) {
@@ -218,14 +231,22 @@ public class CompletionManager {
     }
 
     /**
-     * 重置副本通关条件
-     * @param templateName 模板名称
+     * 重置副本实例的通关条件
+     * @param dungeonId 副本ID
      */
-    public void resetCompletionConditions(String templateName) {
-        List<CompletionCondition> conditions = getCompletionConditions(templateName);
+    public void resetCompletionConditions(String dungeonId) {
+        List<CompletionCondition> conditions = getCompletionConditions(dungeonId);
 
         for (CompletionCondition condition : conditions) {
             condition.reset();
         }
+    }
+
+    /**
+     * 清理副本实例的通关条件
+     * @param dungeonId 副本ID
+     */
+    public void cleanupDungeonConditions(String dungeonId) {
+        dungeonInstanceConditions.remove(dungeonId);
     }
 }

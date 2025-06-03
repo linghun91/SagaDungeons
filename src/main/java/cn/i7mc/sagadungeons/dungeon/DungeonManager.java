@@ -144,6 +144,9 @@ public class DungeonManager {
                         plugin.getMobSpawnerManager().initializeSpawners(dungeonId, templateName, world);
                     }, 20L);
 
+                    // 为副本实例创建独立的通关条件
+                    completionManager.createConditionsForDungeon(dungeonId, templateName);
+
                     // 传送玩家到副本
                     Location spawnLocation;
 
@@ -213,6 +216,9 @@ public class DungeonManager {
 
         // 清理副本刷怪点
         plugin.getMobSpawnerManager().cleanupSpawners(dungeonId);
+
+        // 清理副本通关条件
+        completionManager.cleanupDungeonConditions(dungeonId);
 
         // 将所有玩家传送出副本
         for (Player player : world.getPlayers()) {

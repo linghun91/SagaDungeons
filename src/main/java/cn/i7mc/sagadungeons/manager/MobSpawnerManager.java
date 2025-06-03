@@ -163,22 +163,32 @@ public class MobSpawnerManager {
                     continue;
                 }
 
-                // 生成怪物
+                // 检查当前怪物数量并生成缺失的怪物
                 if (plugin.getHookManager().isMythicMobsAvailable()) {
-                    List<LivingEntity> entities = plugin.getHookManager().getMythicMobsHook().spawnMob(
-                            spawner.getMobType(),
-                            spawner.getLocation(),
-                            spawner.getAmount()
-                    );
+                    // 清理已死亡的实体并获取当前存活数量
+                    int currentAliveCount = spawner.getCurrentAliveCount();
+                    int maxAmount = spawner.getAmount();
 
-                    if (!entities.isEmpty()) {
-                        // 记录生成的实体
-                        spawner.addSpawnedEntities(entities);
+                    // 计算需要生成的数量
+                    int needToSpawn = maxAmount - currentAliveCount;
+
+                    // 只有在需要补充怪物时才生成
+                    if (needToSpawn > 0) {
+                        List<LivingEntity> entities = plugin.getHookManager().getMythicMobsHook().spawnMob(
+                                spawner.getMobType(),
+                                spawner.getLocation(),
+                                needToSpawn
+                        );
+
+                        if (!entities.isEmpty()) {
+                            // 记录生成的实体
+                            spawner.addSpawnedEntities(entities);
+                        }
+
+                        // 设置冷却时间
+                        spawner.startCooldown();
                     }
                 }
-
-                // 设置冷却时间
-                spawner.startCooldown();
             }
         }, 20L, 20L);
 
@@ -318,6 +328,17 @@ public class MobSpawnerManager {
          */
         private void cleanupDeadEntities() {
             spawnedEntities.removeIf(entity -> entity == null || entity.isDead());
+        }
+
+        /**
+         * 获取当前存活的怪物数量
+         * @return 当前存活的怪物数量
+         */
+        public int getCurrentAliveCount() {
+            // 清理已死亡的实体
+            cleanupDeadEntities();
+            // 返回当前存活的实体数量
+            return spawnedEntities.size();
         }
 
         /**

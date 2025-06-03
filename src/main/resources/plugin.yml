@@ -1,5 +1,5 @@
 name: SagaDungeons
-version: '1.0.0'
+version: '1.1.0.3'
 main: cn.i7mc.sagadungeons.SagaDungeons
 api-version: '1.20'
 authors: [Saga]
