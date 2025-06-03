@@ -270,6 +270,9 @@ public class WorldManager {
             // 恢复玩家游戏模式
             plugin.getDungeonManager().restorePlayerGameMode(player);
 
+            // 清除床重生位置，避免残留的床重生位置影响后续游戏
+            player.setBedSpawnLocation(null, true);
+
             // 清除玩家当前副本
             playerData.setCurrentDungeonId(null);
         }

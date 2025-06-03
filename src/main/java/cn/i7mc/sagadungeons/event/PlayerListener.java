@@ -72,8 +72,23 @@ public class PlayerListener extends AbstractListener {
 
         // 检查玩家是否在副本中
         if (playerData.isInDungeon()) {
-            // 设置重生位置为上次位置
-            player.setBedSpawnLocation(playerData.getLastLocation(), true);
+            // 获取副本ID
+            String dungeonId = playerData.getCurrentDungeonId();
+
+            // 获取副本实例
+            DungeonInstance instance = plugin.getDungeonManager().getDungeon(dungeonId);
+            if (instance != null) {
+                // 获取副本模板
+                DungeonTemplate template = plugin.getConfigManager().getTemplateManager().getTemplate(instance.getTemplateName());
+                if (template != null) {
+                    // 获取副本内的重生位置
+                    Location spawnLocation = getSpawnLocation(template, instance.getWorld());
+                    if (spawnLocation != null) {
+                        // 设置重生位置为副本内的重生点
+                        player.setBedSpawnLocation(spawnLocation, true);
+                    }
+                }
+            }
 
             // 使用死亡管理器处理死亡
             plugin.getDungeonManager().getDeathManager().handleDeath(player);
