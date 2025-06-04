@@ -87,6 +87,14 @@ public class TemplateManager {
             template.setForceGameMode(config.getBoolean("forceGameMode", true));
             template.setGameMode(config.getString("gameMode", "ADVENTURE"));
 
+            // 加载禁止指令列表
+            List<String> blockCMDList = config.getStringList("blockCMDList");
+            if (blockCMDList != null) {
+                for (String command : blockCMDList) {
+                    template.addBlockCommand(command);
+                }
+            }
+
             // 加载创建条件
             ConfigurationSection conditionsSection = config.getConfigurationSection("creationConditions");
             if (conditionsSection != null) {
@@ -260,6 +268,9 @@ public class TemplateManager {
         config.set("forceGameMode", template.isForceGameMode());
         config.set("gameMode", template.getGameMode());
 
+        // 保存禁止指令列表
+        config.set("blockCMDList", template.getBlockCMDList());
+
         // 保存创建条件
         ConfigurationSection conditionsSection = config.createSection("creationConditions");
 
@@ -396,6 +407,184 @@ public class TemplateManager {
                 return number * 86400;
             default:
                 throw new NumberFormatException("不支持的时间单位: " + unit);
+        }
+    }
+
+    /**
+     * 重新加载指定模板
+     * @param templateName 模板名称
+     */
+    public void reloadTemplate(String templateName) {
+        if (templateName == null || templateName.isEmpty()) {
+            return;
+        }
+
+        // 移除旧的模板
+        templates.remove(templateName);
+
+        // 重新加载单个模板
+        File templateDir = new File(templatesDir, templateName);
+        File configFile = new File(templateDir, "config.yml");
+
+        // 检查配置文件是否存在
+        if (!configFile.exists()) {
+            plugin.getLogger().warning("模板配置文件不存在: " + configFile.getPath());
+            return;
+        }
+
+        try {
+            // 加载配置文件
+            FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
+
+            // 创建模板对象
+            DungeonTemplate template = new DungeonTemplate(templateName);
+            template.setDisplayName(config.getString("displayName", templateName));
+            template.setWorldDisplay(config.getString("worldDisplay", templateName));
+            template.setDefaultTimeout(config.getInt("defaultTimeout", plugin.getConfigManager().getDefaultTimeout()));
+
+            // 加载游戏模式设置
+            template.setForceGameMode(config.getBoolean("forceGameMode", true));
+            template.setGameMode(config.getString("gameMode", "ADVENTURE"));
+
+            // 加载禁止指令列表
+            List<String> blockCMDList = config.getStringList("blockCMDList");
+            if (blockCMDList != null) {
+                for (String command : blockCMDList) {
+                    template.addBlockCommand(command);
+                }
+            }
+
+            // 加载创建条件
+            ConfigurationSection conditionsSection = config.getConfigurationSection("creationConditions");
+            if (conditionsSection != null) {
+                // 加载条件启用状态
+                if (conditionsSection.contains("moneyEnabled")) {
+                    template.setMoneyEnabled(conditionsSection.getBoolean("moneyEnabled", true));
+                }
+
+                if (conditionsSection.contains("pointsEnabled")) {
+                    template.setPointsEnabled(conditionsSection.getBoolean("pointsEnabled", true));
+                }
+
+                if (conditionsSection.contains("levelEnabled")) {
+                    template.setLevelEnabled(conditionsSection.getBoolean("levelEnabled", true));
+                }
+
+                if (conditionsSection.contains("itemsEnabled")) {
+                    template.setItemsEnabled(conditionsSection.getBoolean("itemsEnabled", true));
+                }
+
+                // 金币条件
+                if (conditionsSection.contains("money")) {
+                    template.setMoneyCost(conditionsSection.getDouble("money"));
+                }
+
+                // 点券条件
+                if (conditionsSection.contains("points")) {
+                    template.setPointsCost(conditionsSection.getInt("points"));
+                }
+
+                // 等级条件
+                if (conditionsSection.contains("level")) {
+                    template.setLevelRequirement(conditionsSection.getInt("level"));
+                }
+
+                // 使用条件管理器加载条件
+                requirementManager.loadRequirements(template, conditionsSection);
+            }
+
+            // 加载死亡限制
+            if (config.contains("deathLimit")) {
+                template.setDeathLimit(config.getInt("deathLimit"));
+            }
+
+            // 加载世界路径
+            if (config.contains("worldPath")) {
+                template.setWorldPath(config.getString("worldPath"));
+            }
+
+            // 加载重生点
+            if (config.contains("spawnLocation")) {
+                template.setSpawnLocation(config.getString("spawnLocation"));
+            }
+
+            // 加载复活道具
+            ConfigurationSection reviveItemSection = config.getConfigurationSection("reviveItem");
+            if (reviveItemSection != null) {
+                // 检查是否是序列化物品
+                if (reviveItemSection.contains("serialized-item")) {
+                    String serializedItem = reviveItemSection.getString("serialized-item");
+                    if (serializedItem != null && !serializedItem.isEmpty()) {
+                        template.setSerializedReviveItem(serializedItem);
+                    }
+                } else {
+                    String material = reviveItemSection.getString("material");
+                    String name = reviveItemSection.getString("name");
+
+                    if (material != null && !material.isEmpty()) {
+                        template.setReviveItemMaterial(material);
+                        template.setReviveItemName(name);
+                    }
+                }
+            }
+
+            // 加载通关条件
+            ConfigurationSection completionSection = config.getConfigurationSection("completion");
+            if (completionSection != null) {
+                completionManager.loadCompletionConditions(template, completionSection);
+            }
+
+            // 加载奖励
+            ConfigurationSection rewardsSection = config.getConfigurationSection("rewards");
+            if (rewardsSection != null) {
+                rewardManager.loadRewards(template, rewardsSection);
+            }
+
+            // 加载MythicMobs刷怪点
+            ConfigurationSection spawnersSection = config.getConfigurationSection("mythicMobsSpawners");
+            if (spawnersSection != null) {
+                for (String key : spawnersSection.getKeys(false)) {
+                    ConfigurationSection spawnerSection = spawnersSection.getConfigurationSection(key);
+                    if (spawnerSection != null) {
+                        String mobType = spawnerSection.getString("mobType");
+                        String location = spawnerSection.getString("location");
+                        int cooldown = spawnerSection.getInt("cooldown", 30);
+                        int amount = spawnerSection.getInt("amount", 1);
+
+                        template.addMobSpawner(key, mobType, location, cooldown, amount);
+                    }
+                }
+            }
+
+            // 加载时间奖励
+            ConfigurationSection timeRewardsSection = config.getConfigurationSection("timeRewards");
+            if (timeRewardsSection != null) {
+                for (String timeKey : timeRewardsSection.getKeys(false)) {
+                    try {
+                        // 解析时间（支持多种格式：3600、"1h"、"90m"等）
+                        int timeSeconds = parseTimeString(timeKey);
+
+                        ConfigurationSection timeRewardSection = timeRewardsSection.getConfigurationSection(timeKey);
+                        if (timeRewardSection != null) {
+                            List<String> commands = timeRewardSection.getStringList("commands");
+                            if (!commands.isEmpty()) {
+                                template.addTimeReward(timeSeconds, commands);
+                            }
+                        }
+                    } catch (NumberFormatException e) {
+                        plugin.getLogger().warning("无效的时间格式: " + timeKey + " 在模板 " + templateName + " 中");
+                    }
+                }
+            }
+
+            // 将模板添加到映射
+            templates.put(templateName, template);
+
+            plugin.getLogger().info("成功重新加载模板: " + templateName);
+
+        } catch (Exception e) {
+            plugin.getLogger().warning("重新加载模板 " + templateName + " 时出错: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 

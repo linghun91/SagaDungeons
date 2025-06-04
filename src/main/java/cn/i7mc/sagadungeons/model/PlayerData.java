@@ -24,6 +24,7 @@ public class PlayerData {
     private int totalCreated = 0;
     private int totalJoined = 0;
     private GameMode originalGameMode; // 玩家进入副本前的游戏模式
+    private boolean hasLegalDungeonAccess = false; // 是否拥有合法副本进入权限
 
     /**
      * 构造函数
@@ -228,6 +229,22 @@ public class PlayerData {
      */
     public void setOriginalGameMode(GameMode originalGameMode) {
         this.originalGameMode = originalGameMode;
+    }
+
+    /**
+     * 检查是否拥有合法副本进入权限
+     * @return 是否拥有合法副本进入权限
+     */
+    public boolean hasLegalDungeonAccess() {
+        return hasLegalDungeonAccess;
+    }
+
+    /**
+     * 设置合法副本进入权限
+     * @param hasLegalDungeonAccess 是否拥有合法副本进入权限
+     */
+    public void setLegalDungeonAccess(boolean hasLegalDungeonAccess) {
+        this.hasLegalDungeonAccess = hasLegalDungeonAccess;
     }
 
     /**

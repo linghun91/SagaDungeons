@@ -12,6 +12,22 @@ maxPlayers: 5                  # 最大玩家数
 forceGameMode: true            # 是否强制游戏模式（默认：true）
 gameMode: "ADVENTURE"          # 强制的游戏模式（SURVIVAL、CREATIVE、ADVENTURE、SPECTATOR）
 
+# 禁止指令列表
+# 在副本中禁止使用的指令，防止玩家通过其他插件的传送功能绕过副本机制
+blockCMDList:
+  - "tp"
+  - "tpa"
+  - "tpaccept"
+  - "tpahere"
+  - "home"
+  - "sethome"
+  - "spawn"
+  - "warp"
+  - "back"
+  - "mv"
+  - "mvtp"
+  - "world"
+
 # 世界路径配置
 # 指定副本世界模板的路径，相对于插件目录
 # 例如: "templates/example/world" 表示使用 plugins/SagaDungeons/templates/example/world 目录作为世界模板

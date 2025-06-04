@@ -132,6 +132,9 @@ public class DungeonManager {
                     // 设置玩家当前副本
                     playerData.setCurrentDungeonId(dungeonId);
 
+                    // 授予合法副本进入权限
+                    plugin.getDungeonSecurityManager().grantLegalAccess(player);
+
                     // 更新玩家创建时间
                     playerData.setLastCreationTime(System.currentTimeMillis());
                     cooldownManager.setLastCreationTime(player.getUniqueId(), System.currentTimeMillis());
@@ -338,6 +341,9 @@ public class DungeonManager {
         playerData.setCurrentDungeonId(dungeonId);
         playerData.incrementTotalJoined();
 
+        // 授予合法副本进入权限
+        plugin.getDungeonSecurityManager().grantLegalAccess(player);
+
         // 传送玩家到副本
         Location spawnLocation;
 
@@ -400,6 +406,9 @@ public class DungeonManager {
 
         // 清除玩家当前副本
         playerData.setCurrentDungeonId(null);
+
+        // 撤销合法副本进入权限
+        plugin.getDungeonSecurityManager().revokeLegalAccess(player);
 
         // 检查副本是否为空
         DungeonInstance instance = activeDungeons.get(dungeonId);

@@ -3,12 +3,7 @@ package cn.i7mc.sagadungeons.util;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.util.io.BukkitObjectInputStream;
-import org.bukkit.util.io.BukkitObjectOutputStream;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.Base64;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -16,6 +11,7 @@ import java.util.logging.Logger;
 /**
  * 物品工具类
  * 提供ItemStack序列化和反序列化功能
+ * 使用Paper API 1.20.1的NBT序列化方法
  */
 public class ItemStackUtil {
 
@@ -23,6 +19,7 @@ public class ItemStackUtil {
 
     /**
      * 将ItemStack序列化为Base64字符串
+     * 使用Paper API的serializeAsBytes()方法，更安全和高效
      * @param itemStack 物品堆
      * @return 序列化后的Base64字符串，如果失败则返回null
      */
@@ -32,16 +29,12 @@ public class ItemStackUtil {
         }
 
         try {
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            BukkitObjectOutputStream dataOutput = new BukkitObjectOutputStream(outputStream);
-
-            // 写入物品数据
-            dataOutput.writeObject(itemStack);
-            dataOutput.close();
+            // 使用Paper API的NBT序列化方法
+            byte[] bytes = itemStack.serializeAsBytes();
 
             // 转换为Base64字符串
-            return Base64.getEncoder().encodeToString(outputStream.toByteArray());
-        } catch (IOException e) {
+            return Base64.getEncoder().encodeToString(bytes);
+        } catch (Exception e) {
             logger.log(Level.SEVERE, "序列化物品时出错", e);
             return null;
         }
@@ -49,6 +42,7 @@ public class ItemStackUtil {
 
     /**
      * 将Base64字符串反序列化为ItemStack
+     * 使用Paper API的deserializeBytes()方法，更安全和高效
      * @param serializedItem 序列化后的Base64字符串
      * @return 反序列化后的物品堆，如果失败则返回null
      */
@@ -58,16 +52,12 @@ public class ItemStackUtil {
         }
 
         try {
+            // 解码Base64字符串
             byte[] bytes = Base64.getDecoder().decode(serializedItem);
-            ByteArrayInputStream inputStream = new ByteArrayInputStream(bytes);
-            BukkitObjectInputStream dataInput = new BukkitObjectInputStream(inputStream);
 
-            // 读取物品数据
-            ItemStack itemStack = (ItemStack) dataInput.readObject();
-            dataInput.close();
-
-            return itemStack;
-        } catch (IOException | ClassNotFoundException e) {
+            // 使用Paper API的NBT反序列化方法
+            return ItemStack.deserializeBytes(bytes);
+        } catch (Exception e) {
             logger.log(Level.SEVERE, "反序列化物品时出错", e);
             return null;
         }

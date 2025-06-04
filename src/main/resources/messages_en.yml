@@ -6,37 +6,42 @@ prefix: "&6[&bSagaDungeons&6] "
 general:
   no-permission: "&cYou do not have permission to execute this command."
   player-only: "&cThis command can only be executed by a player."
-  reload-success: "&aConfiguration reloaded successfully!"
-  unknown-command: "&cUnknown command, please use &6/sd help &cto view help."
+  reload-success: "&aConfiguration file reloaded successfully!"
+  unknown-command: "&cUnknown command, please use &6/sd help &cto see help."
   public: "&aPublic"
   private: "&cPrivate"
+
+hook:
+  mythicmobs:
+    not-available: "&cMythicMobs plugin is not available, this feature cannot be used!"
 
 dungeon:
   create:
     success: "&aDungeon created successfully! Dungeon ID: &e%id%"
     fail: "&cDungeon creation failed!"
-    cooldown: "&cYou need to wait &e%time% &cseconds before creating a dungeon again."
+    cooldown: "&cYou need to wait &e%time% &cseconds before you can create a dungeon again."
     no-template: "&cCould not find the specified dungeon template: &e%template%"
-    no-money: "&cYou don't have enough coins to create this dungeon. Required: &e%amount%"
-    no-points: "&cYou don't have enough points to create this dungeon. Required: &e%amount%"
-    no-item: "&cYou don't have enough items to create this dungeon. Required: &e%item% x%amount%"
-    no-level: "&cYour level is not high enough to create this dungeon. Required: &e%level%"
+    no-money: "&cYou do not have enough coins to create this dungeon, required: &e%amount%"
+    no-points: "&cYou do not have enough points to create this dungeon, required: &e%amount%"
+    no-item: "&cYou do not have enough items to create this dungeon, required: &e%item% x%amount%"
+    no-level: "&cYour level is not high enough to create this dungeon, required: &e%level%"
     locked: "&cAnother dungeon is currently being created, please try again later."
+  not-found: "&cCould not find the specified dungeon!"
   requirement:
     money:
-      fail: "&cYou don't have enough coins. Required: &e%amount%"
+      fail: "&cYou do not have enough coins, required: &e%amount%"
     points:
-      fail: "&cYou don't have enough points. Required: &e%amount%"
+      fail: "&cYou do not have enough points, required: &e%amount%"
     level:
-      fail: "&cYour level is not high enough. Required: &e%level%"
+      fail: "&cYour level is not high enough, required: &e%level%"
     item:
-      fail: "&cYou don't have enough items. Required: &e%item% x%amount%"
+      fail: "&cYou do not have enough items, required: &e%item% x%amount%"
       name:
-        fail: "&cYou don't have enough items. Required: &e%name% (%item%) x%amount%"
+        fail: "&cYou do not have enough items, required: &e%name% (%item%) x%amount%"
     vault:
       unavailable: "&cEconomy system is unavailable, cannot check coin condition."
     playerpoints:
-      unavailable: "&cPlayerPoints system is unavailable, cannot check points condition."
+      unavailable: "&cPoints system is unavailable, cannot check points condition."
   join:
     success: "&aSuccessfully joined the dungeon!"
     fail: "&cFailed to join the dungeon!"
@@ -47,7 +52,7 @@ dungeon:
     success: "&aSuccessfully left the dungeon!"
     not-in-dungeon: "&cYou are not currently in any dungeon!"
     fail: "&cFailed to leave the dungeon!"
-  command.leave: # This seems to be a duplicate of dungeon.leave, kept for consistency with original
+  command.leave: # Note: This section seems to duplicate dungeon.leave
     success: "&aSuccessfully left the dungeon!"
     not-in-dungeon: "&cYou are not currently in any dungeon!"
     fail: "&cFailed to leave the dungeon!"
@@ -57,41 +62,43 @@ dungeon:
     expired: "&cDungeon invitation has expired!"
     accepted: "&aDungeon invitation accepted!"
     declined: "&cDungeon invitation declined!"
+    not-owner: "&cOnly the dungeon creator can invite players!"
   kick:
     success: "&aSuccessfully kicked &e%player% &afrom the dungeon!"
     fail: "&cFailed to kick player!"
     not-owner: "&cOnly the dungeon creator can kick players!"
   timeout:
     warning: "&cDungeon will time out in &e%time% &cseconds!"
-    expired: "&cDungeon has timed out, you will be teleported out!"
+    expired: "&cDungeon has timed out, you will be teleported out soon!"
   public:
     enabled: "&aDungeon set to public mode, all players can join!"
     disabled: "&aDungeon set to private mode, only invited players can join!"
+    not-owner: "&cOnly the dungeon creator can toggle public/private status!"
   list:
-    header: "&6=== Available Dungeons List ==="
+    header: "&6=== Available Dungeon List ==="
     format: "&e%id% &7- &a%name% &7- &b%owner% &7- &c%players%/%max_players%"
     footer: "&6=================="
-    empty: "&cThere are currently no available dungeons!"
+    empty: "&cNo available dungeons currently!"
   completion:
-    success: "&aCongratulations, you completed the dungeon &e%dungeon%&a! Time taken: &b%time%"
+    success: "&aCongratulations on completing the dungeon &e%dungeon%&a! Time taken: &b%time%"
     title:
-      main: "&6&lCongratulations on Completing the Dungeon!"
-      sub: "&eYou have completed the dungeon, you will be forced to teleport out in &c%time% &eseconds"
-      sub-urgent: "&cYou have completed the dungeon, you will be forced to teleport out in &4%time% &cseconds!"
+      main: "&6&lCongratulations on clearing the dungeon!"
+      sub: "&eYou have cleared this dungeon, you will be teleported out in &c%time% &eseconds"
+      sub-urgent: "&cYou have cleared this dungeon, you will be teleported out in &4%time% &cseconds!"
     countdown:
-      normal: "&eYou have completed the dungeon, you will be forced to teleport out in &c%time% &eseconds"
-      urgent: "&cYou have completed the dungeon, you will be forced to teleport out in &4%time% &cseconds!"
+      normal: "&eYou have cleared this dungeon, you will be teleported out in &c%time% &eseconds"
+      urgent: "&cYou have cleared this dungeon, you will be teleported out in &4%time% &cseconds!"
     kill-all:
       description: "&7Kill all monsters in the dungeon"
       progress: "&7Killed: &e%killed%/%total%"
     reach-area:
       description: "&7Reach the specified area &e(%x%, %y%, %z%)"
-      reached: "&7Reached the target area"
-      not-reached: "&7Not yet reached the target area"
+      reached: "&7Target area reached"
+      not-reached: "&7Target area not yet reached"
     kill-specific:
       description: "&7Kill specific monster: &e%mob%"
-      killed: "&7Killed target monster"
-      not-killed: "&7Not yet killed target monster"
+      killed: "&7Target monster killed"
+      not-killed: "&7Target monster not yet killed"
     kill-count:
       description: "&7Kill &e%count% &7monsters"
       progress: "&7Killed: &e%current%/%target%"
@@ -101,7 +108,7 @@ dungeon:
       reached: "&cYou have reached the death limit of &e%limit% &ctimes and have been kicked from the dungeon!"
     revive:
       item: "&aYou used a revive item &e%item%&a and have respawned in the dungeon!"
-    admin-close: "&cDungeon &e%id% &cwas closed by an admin, you have been teleported out!"
+    admin-close: "&cDungeon &e%id% &cwas closed by an administrator, you have been teleported out!"
   reward:
     header: "&6=== Dungeon Rewards ==="
     entry: "&a- %description%"
@@ -118,8 +125,13 @@ dungeon:
       description: "&aSpecial Reward"
     time:
       header: "&6=== Time Rewards ==="
-      description: "&aSpeed Completion Reward (Time taken: &e%time%&a)"
+      description: "&aQuick Clear Reward (Time: &e%time%&a)"
       footer: "&6==============="
+  spawner:
+    not-in-dungeon: "&cYou must be in a dungeon to manage spawners!"
+    not-owner: "&cOnly the dungeon creator can manage spawners!"
+    set-success: "&aSpawner set successfully!"
+    set-fail: "&cFailed to set spawner!"
 
 command:
   help:
@@ -141,46 +153,44 @@ command:
     help:
       header: "&6=== SagaDungeons Admin Help ==="
       reload: "&e/sd admin reload &7- Reload configuration"
-      delete: "&e/sd admin delete <dungeon_id> &7- Delete a specified dungeon"
-      tp: "&e/sd admin tp <dungeon_id> &7- Teleport to a specified dungeon"
+      delete: "&e/sd admin delete <DungeonID> &7- Delete specified dungeon"
+      tp: "&e/sd admin tp <DungeonID> &7- Teleport to specified dungeon"
       list: "&e/sd admin list &7- List all dungeons"
-      createtemplate: "&e/sd admin createtemplate <template_name> [world_path] &7- Create a new dungeon template"
-      setworld: "&e/sd admin setworld <template_name> &7- Set the current world as the dungeon template's world"
-      copyworld: "&e/sd admin copyworld <template_name> <world_name> &7- Copy a specified world to the dungeon template's world directory"
-      setitem: "&e/sd admin setitem <template_name> <type> [amount] &7- Set the item in hand as a condition or reward for the dungeon"
-      forceclose: "&e/sd admin forceclose <dungeon_id/all> &7- Force close a specified dungeon or all dungeons"
-      setspawn: "&e/sd admin setspawn <template_name> &7- Set the current location as the spawn point for the dungeon template"
+      createtemplate: "&e/sd admin createtemplate <TemplateName> [WorldPath] &7- Create a new dungeon template"
+      setworld: "&e/sd admin setworld <TemplateName> &7- Set the current world as the dungeon template's world"
+      copyworld: "&e/sd admin copyworld <TemplateName> <WorldName> &7- Copy the specified world to the dungeon template's world directory"
+      setitem: "&e/sd admin setitem <TemplateName> <Type> [Amount] &7- Set the item in hand as a dungeon condition or reward"
+      forceclose: "&e/sd admin forceclose <DungeonID/all> &7- Force close specified dungeon or all dungeons"
+      setspawn: "&e/sd admin setspawn <TemplateName> &7- Set the current location as the dungeon template's spawn point"
       gui: "&e/sd admin gui &7- Open GUI management interface"
       spawner: "&e/sd admin spawner <set/remove/list> &7- Manage dungeon spawners"
+      edit: "&e/sd admin edit &7- Open template editing interface"
       help: "&e/sd admin help &7- Display this admin help message"
       footer: "&6==========================="
     reload:
       success: "&aConfiguration file has been reloaded."
     delete:
-      usage: "&cUsage: /sd admin delete <dungeon_id>"
+      usage: "&cUsage: /sd admin delete <DungeonID>"
       success: "&aSuccessfully deleted dungeon &e%id%&a."
       fail: "&cFailed to delete dungeon &e%id%&c."
-    close:
-      success: "&aSuccessfully closed dungeon &e%id%&a."
-      fail: "&cFailed to close dungeon &e%id%&c."
     tp:
-      usage: "&cUsage: /sd admin tp <dungeon_id>"
+      usage: "&cUsage: /sd admin tp <DungeonID>"
       success: "&aSuccessfully teleported to dungeon &e%id%&a."
       fail: "&cFailed to teleport to dungeon &e%id%&c."
-    unknown: "&cUnknown admin command: &e%command%&c. Use &e/sd admin help &cto view help."
+    unknown: "&cUnknown admin command: &e%command%&c. Use &e/sd admin help &cto see help."
     createtemplate:
-      usage: "&cUsage: /sd admin createtemplate <template_name> [world_path]"
+      usage: "&cUsage: /sd admin createtemplate <TemplateName> [WorldPath]"
       invalid-name: "&cInvalid template name, only letters, numbers, and underscores are allowed."
       already-exists: "&cTemplate &e%template% &calready exists."
       success: "&aSuccessfully created template &e%template%&a."
       set-world-hint: "&aHint: Use &e/sd admin setworld %template% &ato set the current world as the template world."
     setworld:
-      usage: "&cUsage: /sd admin setworld <template_name>"
+      usage: "&cUsage: /sd admin setworld <TemplateName>"
       template-not-found: "&cCould not find template &e%template%&c."
       success: "&aSuccessfully set world &e%world% &aas the world for template &e%template%&a."
-      copy-hint: "&aHint: Use &e/sd admin copyworld %template% <world_name> &ato copy the specified world to the template world directory."
+      copy-hint: "&aHint: Use &e/sd admin copyworld %template% <WorldName> &ato copy the specified world to the template world directory."
     copyworld:
-      usage: "&cUsage: /sd admin copyworld <template_name> <world_name>"
+      usage: "&cUsage: /sd admin copyworld <TemplateName> <WorldName>"
       template-not-found: "&cCould not find template &e%template%&c."
       world-not-found: "&cCould not find world &e%world%&c."
       start: "&aStarting to copy world &e%world% &ato template &e%template%&a's world directory..."
@@ -188,67 +198,221 @@ command:
       success: "&aSuccessfully copied world &e%world% &ato template &e%template%&a's world directory."
       fail: "&cFailed to copy world."
     setitem:
-      usage: "&cUsage: /sd admin setitem <template_name> <type> [amount]"
+      usage: "&cUsage: /sd admin setitem <TemplateName> <Type> [Amount]"
       template-not-found: "&cCould not find template &e%template%&c."
       invalid-type: "&cInvalid type, available types: condition, reward, revive"
       no-item: "&cYou must be holding an item."
       invalid-amount: "&cInvalid amount, must be a positive integer."
-      success: "&aSuccessfully set the held item as the &e%type% &aitem for template &e%template%&a."
+      success: "&aSuccessfully set the item in hand as the &e%type% &aitem for template &e%template%&a."
       fail: "&cFailed to set item."
     forceclose:
-      usage: "&cUsage: /sd admin forceclose <dungeon_id/all>"
+      usage: "&cUsage: /sd admin forceclose <DungeonID/all>"
       success: "&aSuccessfully closed dungeon &e%id%&a."
       fail: "&cFailed to close dungeon &e%id%&c."
-      no-dungeons: "&cThere are currently no active dungeons."
+      no-dungeons: "&cNo active dungeons currently."
       all-success: "&aSuccessfully closed &e%count% &adungeons."
     setspawn:
-      not-in-dungeon: "&cYou must be in a dungeon to set its spawn point!" # Or should this be for template editing world? Assuming in an active dungeon instance for a template for now.
+      not-in-dungeon: "&cYou must be in a dungeon to set the spawn point!"
       invalid-dungeon: "&cInvalid dungeon!"
       template-not-found: "&cCould not find dungeon template!"
-      success: "&aSuccessfully set current location as spawn point for template &e%template%&a!"
+      success: "&aSuccessfully set the current location as the spawn point for template &e%template%&a!"
     gui:
       success: "&aSuccessfully opened GUI management interface!"
-    spawner: # This spawner section is under admin commands
+    spawner:
       usage: "&cUsage: /sd admin spawner <set/remove/list>"
       not-in-dungeon: "&cYou must be in a dungeon to manage spawners."
       dungeon-not-found: "&cCould not find the dungeon you are in."
       template-not-found: "&cCould not find dungeon template."
       unknown: "&cUnknown subcommand: &e%command%&c."
       set:
-        usage: "&cUsage: /sd admin spawner set <spawner_id> <mob_type> [amount] [cooldown]"
+        usage: "&cUsage: /sd admin spawner set <SpawnerID> <MobType> [Amount] [Cooldown]"
         invalid-mob-type: "&cInvalid mob type: &e%mob%&c."
-        invalid-amount: "&cInvalid amount, must be a positive integer."
-        invalid-cooldown: "&cInvalid cooldown, must be a non-negative integer."
-        success: "&aSuccessfully set spawner &e%id%&a, mob type: &e%mob%&a, amount: &e%amount%&a, cooldown: &e%cooldown%&a seconds."
+        invalid-amount: "&cInvalid amount, must be an integer greater than 0."
+        invalid-cooldown: "&cInvalid cooldown, must be an integer greater than or equal to 0."
+        success: "&aSuccessfully set spawner &e%id%&a, Mob Type: &e%mob%&a, Amount: &e%amount%&a, Cooldown: &e%cooldown% &aseconds."
       remove:
-        usage: "&cUsage: /sd admin spawner remove <spawner_id>"
+        usage: "&cUsage: /sd admin spawner remove <SpawnerID>"
         success: "&aSuccessfully removed spawner &e%id%&a."
-        not-found: "&cSpawner &e%id%&c not found."
+        not-found: "&cCould not find spawner &e%id%&c."
       list:
-        empty: "&cNo spawners set for current template."
+        empty: "&cThis template currently has no spawners set."
         header: "&6=== Spawner List ==="
         entry: "&e%id% &7- Mob: &6%mob% &7- Amount: &e%amount% &7- Cooldown: &e%cooldown%&7s"
         footer: "&6==============="
+    edit:
+      success: "&aSuccessfully opened template editing interface!"
+      template-selected: "&aTemplate &e%template%&a selected for editing!"
+      create-template-hint: "&aPlease use &e/sd admin createtemplate <TemplateName> &acommand to create a new template."
+      delete-template-hint: "&cConfirm deletion of template &e%template%&c? This action cannot be undone!"
+      template-not-found: "&cCould not find template &e%template%&c!"
+      save-success: "&aSuccessfully saved configuration for template &e%template%&a!"
+      input-display-name: "&aPlease enter the new display name in chat:"
+      input-world-display: "&aPlease enter the new world display name in chat:"
+      input-timeout: "&aPlease enter the new timeout (seconds) in chat:"
+      input-death-limit: "&aPlease enter the death limit in chat (0 for no limit):"
+      gamemode-toggle: "&aForce gamemode has been &e%status%&a!"
+      gamemode-switch: "&aGamemode switched to &e%mode%&a!"
+      input-money-cost: "&aPlease enter the coin cost amount in chat:"
+      input-points-cost: "&aPlease enter the points cost amount in chat:"
+      input-level-requirement: "&aPlease enter the level requirement in chat:"
+      items-management-hint: "&aItem condition management will be implemented in a future version."
+      money-toggle: "&aCoin condition has been &e%status%&a!"
+      points-toggle: "&aPoints condition has been &e%status%&a!"
+      level-toggle: "&aLevel condition has been &e%status%&a!"
+      items-toggle: "&aItem condition has been &e%status%&a!"
+      input-money-reward: "&aPlease enter the coin reward amount in chat:"
+      input-points-reward: "&aPlease enter the points reward amount in chat:"
+      input-experience-reward: "&aPlease enter the experience reward amount in chat:"
+      money-reward-cleared: "&aCoin reward cleared!"
+      points-reward-cleared: "&aPoints reward cleared!"
+      experience-reward-cleared: "&aExperience reward cleared!"
+      # Item Reward Management
+      no-item-in-hand: "&cPlease hold the item to add in your hand!"
+      item-serialize-failed: "&cItem serialization failed, please try again!"
+      item-reward-added: "&aItem reward added!"
+      item-rewards-saved: "&aItem reward configuration saved!"
+      all-item-rewards-cleared: "&cAll item rewards cleared!"
+      hand-not-empty: "&cPlease empty your hand first!"
+      item-copied-to-hand: "&aItem copied to hand!"
+      input-item-amount: "&aPlease enter the item amount in chat (1-64):"
+      invalid-amount: "&cInvalid amount! Please enter a number between 1-64." # Note: Key 'invalid-amount' is also used under command.admin.setitem
+      item-amount-updated: "&aItem amount updated to &f{amount}&a!"
+      item-reward-deleted: "&cItem reward deleted!"
+      load-error: "&cError loading configuration, please check console!"
+      save-error: "&cError saving configuration, please check console!"
+      invalid-number: "&cPlease enter a valid number!" # Note: Key 'invalid-number' is also used lower in this section
 
-  create: # Player command
+      # Command Reward Management
+      input-command: "&aPlease enter the command to execute in chat:"
+      invalid-command: "&cInvalid command! Please enter a valid command."
+      command-reward-added: "&aCommand reward added!"
+      command-rewards-saved: "&aCommand reward configuration saved!"
+      all-command-rewards-cleared: "&cAll command rewards cleared!"
+      no-commands-to-test: "&cNo commands to test!"
+      testing-commands: "&aTesting all commands..."
+      command-test-success: "&aCommand executed successfully: &f{command}"
+      command-test-failed: "&cCommand execution failed: &f{command}"
+      input-new-command: "&aPlease enter the new command:"
+      command-updated: "&aCommand updated!"
+      input-command-description: "&aPlease enter command description (optional):"
+      description-updated: "&aDescription updated!"
+      command-reward-deleted: "&cCommand reward deleted!"
+
+      # Time Reward Management
+      input-time-seconds: "&aPlease enter the time limit (seconds):"
+      input-new-time-seconds: "&aPlease enter the new time limit (seconds):"
+      invalid-time-value: "&cPlease enter a valid positive integer time value!"
+      time-reward-exists: "&cReward for this time limit already exists!"
+      time-reward-added: "&aTime reward added: &f{time}"
+      time-limit-updated: "&aTime limit updated to: &f{time}"
+      time-reward-deleted: "&cTime reward deleted: &f{time}"
+      time-rewards-saved: "&aTime reward configuration saved!"
+      all-time-rewards-cleared: "&cAll time rewards cleared!"
+      time-command-management-hint: "&aTime reward command management will be implemented in a future version."
+
+      # General Input Related
+      invalid-input: "&cInvalid input, please try again!"
+
+      # Item Condition Management
+      item-condition-added: "&aItem condition added!"
+      item-condition-deleted: "&cItem condition deleted!"
+      all-item-conditions-cleared: "&cAll item conditions cleared!"
+      item-copied: "&aItem copied to inventory!"
+      inventory-full: "&cInventory full, cannot copy item!"
+      completion:
+        kill-all-toggle: "&aKill all condition status toggled!"
+        kill-all-removed: "&cKill all condition removed!"
+        input-kill-count: "&aPlease enter the kill count target in chat:"
+        kill-count-removed: "&cKill count condition removed!"
+        input-specific-mob: "&aPlease enter the target mob type in chat:"
+        kill-specific-removed: "&cKill specific mob condition removed!"
+        set-reach-area-location: "&aPlease move to the target location and reopen the interface to set the reach area."
+        input-reach-area-radius: "&aPlease enter the detection radius in chat:"
+        reach-area-removed: "&cReach area condition removed!"
+        reach-area-radius-updated: "&aReach area detection radius updated to: &f%radius%"
+        reach-area-location-updated: "&aReach area location set to: &f(%x%, %y%, %z%)"
+        location-save-failed: "&cFailed to save location, please try again!"
+        kill-count-updated: "&aKill count target updated to: &f%count%"
+        kill-specific-updated: "&aKill specific mob updated to: &f%mob%"
+        composite-management-hint: "&a%type% composite condition management will be implemented in a future version."
+        composite-removed: "&c%type% composite condition removed!"
+        composite-type-switched: "&aComposite condition type switched from &f%old% &ato &f%new%&a!"
+        input-composite-priority: "&aPlease enter the composite condition priority (number) in chat:"
+        composite-priority-updated: "&aComposite condition priority updated to: &f%priority%"
+        composite-add-condition-hint: "&aPlease select the sub-condition type to add."
+        composite-edit-condition-hint: "&aEditing sub-condition &f%condition% &awill be implemented in a future version."
+        composite-delete-condition-hint: "&cConfirm deletion of sub-condition &f%condition%&c?"
+        composite-condition-deleted: "&cSub-condition &f%condition% &cdeleted!"
+        composite-saved: "&aComposite condition configuration saved!"
+        composite-save-failed: "&cFailed to save composite condition configuration!"
+      spawner: # Spawner settings within the edit GUI
+        edit-hint: "&aSpawner %spawner% editing will be implemented in a future version."
+        teleport-hint: "&aTeleport to spawner %spawner% will be implemented in a future version."
+        removed: "&cSpawner %spawner% removed!"
+        add-hint: "&aAdd spawner functionality will be implemented in a future version."
+        created: "&aSuccessfully created spawner &e%spawner%&a!"
+        create-failed: "&cFailed to create spawner, please check configuration!"
+        invalid-mobtype: "&cInvalid mob type!"
+        input-mobtype: "&aPlease enter mob type in chat:"
+        mobtype-updated: "&aMob type updated to: &e%mobtype%"
+        input-amount: "&aPlease enter spawn amount in chat (1-100):"
+        amount-updated: "&aSpawn amount updated to: &e%amount%"
+        invalid-amount: "&cInvalid amount, must be an integer between 1-100!" # Note: Key 'invalid-amount' used multiple times
+        input-cooldown: "&aPlease enter cooldown time in chat (0-3600 seconds):"
+        cooldown-updated: "&aCooldown time updated to: &e%cooldown% seconds"
+        invalid-cooldown: "&cInvalid cooldown, must be an integer between 0-3600!"
+        location-updated: "&aLocation updated to current position!"
+        no-location: "&cLocation not set!"
+        invalid-location: "&cInvalid location!"
+        teleported: "&aTeleported to spawner location!"
+        preview-header: "&6=== Spawner Preview ==="
+        preview-mobtype: "&7Mob Type: &f%mobtype%"
+        preview-amount: "&7Spawn Amount: &f%amount%"
+        preview-cooldown: "&7Cooldown: &f%cooldown% seconds"
+        preview-location: "&7Location: &f%location%"
+        reset-success: "&aSettings reset to default values!"
+        not-found: "&cSpecified spawner not found!"
+        deleted: "&cSpawner deleted!"
+        update-failed: "&cFailed to update spawner!"
+      input-cancel-hint: "&7Enter &e'cancel' &7to cancel input"
+      input-cancelled: "&cInput cancelled."
+      input-error: "&cError processing input, please try again."
+      invalid-number: "&cPlease enter a valid positive integer!" # Note: Key 'invalid-number' used multiple times
+      invalid-decimal: "&cPlease enter a valid positive number!"
+      invalid-text: "&cPlease enter valid text (not exceeding 50 characters)!"
+      display-name-updated: "&aDisplay name updated to: &f%name%"
+      world-display-updated: "&aWorld display name updated to: &f%name%"
+      timeout-updated: "&aTimeout updated to: &f%timeout% &aseconds"
+      death-limit-updated: "&aDeath limit updated to: &f%limit% &atimes"
+      money-cost-updated: "&aCoin cost updated to: &f%cost%"
+      points-cost-updated: "&aPoints cost updated to: &f%cost%"
+      level-requirement-updated: "&aLevel requirement updated to: &f%level%"
+      money-reward-updated: "&aCoin reward updated to: &f%reward%"
+      points-reward-updated: "&aPoints reward updated to: &f%reward%"
+      experience-reward-updated: "&aExperience reward updated to: &f%reward%"
+      money-reward-cleared: "&cCoin reward cleared!" # Note: Duplicated from earlier in edit section
+      points-reward-cleared: "&cPoints reward cleared!" # Note: Duplicated
+      experience-reward-cleared: "&cExperience reward cleared!" # Note: Duplicated
+
+  create:
     usage: "&cUsage: /sd create <template>"
-    console-usage: "&cUsage: /sd create <template> <player>"
+    console-usage: "&cUsage: /sd create <template> <playerName>"
     template-not-found: "&cTemplate &e%template% &cdoes not exist."
     player-not-found: "&cCould not find player &e%player%&c."
-    already-in-dungeon: "&cYou are already in a dungeon, please leave the current one first."
-    cooldown: "&cYou need to wait &e%time% &cseconds before creating a dungeon again."
+    already-in-dungeon: "&cYou are already in a dungeon, please leave the current dungeon first."
+    cooldown: "&cYou need to wait &e%time% &cseconds before creating another dungeon."
     success: "&aSuccessfully created dungeon &e%template%&a."
     console-success: "&aSuccessfully created dungeon &e%template% &afor player &e%player%&a."
     created-by-console: "&aAn administrator created dungeon &e%template% &afor you."
-    fail: "&cFailed to create dungeon."
+    fail: "&cDungeon creation failed."
 
-  list: # Player command
-    no-dungeons: "&cThere are currently no active dungeons."
+  list:
+    no-dungeons: "&cNo active dungeons currently."
     header: "&6=== Dungeon List ==="
     entry: "&e%id% &7- &6%template% &7- Creator: &e%owner% &7- Players: &e%players% &7- Time Left: &e%time% &7- Status: %status%"
     footer: "&6==============="
 
-  invite: # Player command
+  invite:
     usage: "&cUsage: /sd invite <player>"
     player-not-found: "&cCould not find player &e%player%&c."
     cannot-invite-self: "&cYou cannot invite yourself."
@@ -259,21 +423,21 @@ command:
     success: "&aSuccessfully invited player &e%player% &ato join the dungeon."
     received: "&aPlayer &e%player% &ainvited you to join dungeon &e%dungeon% &a(ID: &e%id%&a). Use &e/sd join %id% &ato join."
 
-  join: # Player command
+  join:
     usage: "&cUsage: /sd join <ID/PlayerName>"
-    already-in-dungeon: "&cYou are already in a dungeon, please leave the current one first."
+    already-in-dungeon: "&cYou are already in a dungeon, please leave the current dungeon first."
     dungeon-not-found: "&cCould not find dungeon &e%id%&c."
     dungeon-not-available: "&cDungeon &e%id% &cis currently unavailable, it might be deleting or completed."
     not-allowed: "&cYou do not have permission to join this dungeon."
     success: "&aSuccessfully joined dungeon &e%dungeon%&a."
     fail: "&cFailed to join dungeon."
 
-  leave: # Player command
+  leave:
     not-in-dungeon: "&cYou are not in any dungeon!"
     success: "&aYou have successfully left the dungeon!"
-    fail: "&cFailed to leave the dungeon!"
+    fail: "&cFailed to leave dungeon!"
 
-  kick: # Player command
+  kick:
     usage: "&cUsage: /sd kick <player>"
     player-not-found: "&cCould not find player &e%player%&c."
     cannot-kick-self: "&cYou cannot kick yourself."
@@ -282,24 +446,21 @@ command:
     not-owner: "&cOnly the dungeon creator can kick players."
     target-not-in-dungeon: "&cPlayer &e%player% &cis not in your dungeon."
     success: "&aSuccessfully kicked player &e%player% &afrom the dungeon."
-    kicked: "&cYou were kicked from the dungeon by &e%player%&c."
+    kicked: "&cYou were kicked from the dungeon by player &e%player%&c."
 
-  public: # Player command
+  public:
     not-in-dungeon: "&cYou must be in a dungeon to toggle public/private status."
     dungeon-not-found: "&cCould not find the dungeon you are in."
     not-owner: "&cOnly the dungeon creator can toggle public/private status."
     set-public: "&aDungeon set to public, all players can join."
     set-private: "&aDungeon set to private, only invited players can join."
 
-
-
   stats:
     player-not-found: "&cCould not find player &e%player%&c."
-    header: "&6=== Dungeon Stats for &e%player% &6==="
+    header: "&6=== &e%player%&6's Dungeon Stats ==="
     total: "&7Total Created: &e%created% &7| Total Joined: &e%joined% &7| Total Completed: &e%completed%"
     completed:
       header: "&7Completed Dungeons:"
-      entry: "&7- &e%dungeon% &7(&e%count%&7 times)"
+      entry: "&7- &e%dungeon% &7(&e%count% &7times)"
       none: "&7No dungeons completed yet"
     footer: "&6======================"
-

@@ -189,6 +189,11 @@ public class AdminCommand extends AbstractCommand {
                 // 执行命令
                 new SpawnerAdminCommand(plugin).execute(sender, spawnerArgs);
                 break;
+            case "edit":
+                // 打开模板编辑界面
+                // 执行命令
+                new EditCommand(plugin).execute(sender, new String[0]);
+                break;
             case "help":
                 // 显示帮助
                 showAdminHelp(sender);
@@ -222,6 +227,7 @@ public class AdminCommand extends AbstractCommand {
             subCommands.add("setspawn");
             subCommands.add("gui");
             subCommands.add("spawner");
+            subCommands.add("edit");
             subCommands.add("help");
 
             for (String subCommand : subCommands) {

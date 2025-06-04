@@ -29,6 +29,17 @@ dungeon:
     name-match: "通过实体名称匹配到目标怪物: %target_mob%"
     condition-complete: "击杀特定怪物条件已完成: %target_mob%"
     dungeon-complete: "副本通关条件已满足，设置状态为COMPLETED: %dungeon_id%"
+  command:
+    blocked-debug: "玩家 %player% 在副本 %dungeon% (模板: %template%) 中尝试执行被禁止的指令: %command%"
+  security:
+    access:
+      granted: "授予玩家 %player% 合法副本进入权限"
+      revoked: "撤销玩家 %player% 合法副本进入权限"
+    teleport:
+      blocked-debug: "阻止玩家 %player% 非法传送到副本世界 %world% - 权限状态: %hasAccess%, 管理员权限: %isAdmin%"
+      allowed-debug: "允许玩家 %player% 传送到副本世界 %world% - 传送原因: %cause%, 权限状态: %hasAccess%"
+    entry:
+      blocked-debug: "检测到玩家 %player% 非法进入副本世界 %world%，已传送回主世界 - 权限状态: %hasAccess%, 管理员权限: %isAdmin%"
 
 hook:
   vault:

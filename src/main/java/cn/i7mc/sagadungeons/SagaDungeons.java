@@ -3,6 +3,8 @@ package cn.i7mc.sagadungeons;
 import cn.i7mc.sagadungeons.command.CommandManager;
 import cn.i7mc.sagadungeons.config.ConfigManager;
 import cn.i7mc.sagadungeons.dungeon.DungeonManager;
+import cn.i7mc.sagadungeons.event.ChatInputListener;
+import cn.i7mc.sagadungeons.event.CommandBlockListener;
 import cn.i7mc.sagadungeons.event.CompletionListener;
 import cn.i7mc.sagadungeons.event.InventoryListener;
 import cn.i7mc.sagadungeons.event.PlayerListener;
@@ -30,6 +32,8 @@ public class SagaDungeons extends JavaPlugin {
     private HookManager hookManager;
     private GUIManager guiManager;
     private MobSpawnerManager mobSpawnerManager;
+    private ChatInputListener chatInputListener;
+    private cn.i7mc.sagadungeons.manager.DungeonSecurityManager dungeonSecurityManager;
 
     /**
      * 获取插件实例
@@ -68,6 +72,12 @@ public class SagaDungeons extends JavaPlugin {
 
         // 初始化怪物生成管理器
         mobSpawnerManager = new MobSpawnerManager(this);
+
+        // 初始化聊天输入监听器
+        chatInputListener = new ChatInputListener(this);
+
+        // 初始化副本安全管理器
+        dungeonSecurityManager = new cn.i7mc.sagadungeons.manager.DungeonSecurityManager(this);
 
         // 初始化命令管理器
         commandManager = new CommandManager(this);
@@ -171,6 +181,9 @@ public class SagaDungeons extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new WorldListener(this), this);
         getServer().getPluginManager().registerEvents(new InventoryListener(this), this);
         getServer().getPluginManager().registerEvents(new CompletionListener(this), this);
+        getServer().getPluginManager().registerEvents(new CommandBlockListener(this), this);
+        getServer().getPluginManager().registerEvents(new cn.i7mc.sagadungeons.event.TeleportSecurityListener(this), this);
+        getServer().getPluginManager().registerEvents(chatInputListener, this);
     }
 
     /**
@@ -227,5 +240,21 @@ public class SagaDungeons extends JavaPlugin {
      */
     public MobSpawnerManager getMobSpawnerManager() {
         return mobSpawnerManager;
+    }
+
+    /**
+     * 获取聊天输入监听器
+     * @return 聊天输入监听器
+     */
+    public ChatInputListener getChatInputListener() {
+        return chatInputListener;
+    }
+
+    /**
+     * 获取副本安全管理器
+     * @return 副本安全管理器
+     */
+    public cn.i7mc.sagadungeons.manager.DungeonSecurityManager getDungeonSecurityManager() {
+        return dungeonSecurityManager;
     }
 }

@@ -76,6 +76,20 @@ public class CreateTemplateCommand extends AbstractCommand {
             template.setWorldPath(worldPath);
         }
 
+        // 添加默认禁止指令列表
+        template.addBlockCommand("tp");
+        template.addBlockCommand("tpa");
+        template.addBlockCommand("tpaccept");
+        template.addBlockCommand("tpahere");
+        template.addBlockCommand("home");
+        template.addBlockCommand("sethome");
+        template.addBlockCommand("spawn");
+        template.addBlockCommand("warp");
+        template.addBlockCommand("back");
+        template.addBlockCommand("mv");
+        template.addBlockCommand("mvtp");
+        template.addBlockCommand("world");
+
         // 创建模板目录
         File templateDir = plugin.getConfigManager().getTemplateManager().getTemplateDirectory(templateName);
         if (!templateDir.exists()) {

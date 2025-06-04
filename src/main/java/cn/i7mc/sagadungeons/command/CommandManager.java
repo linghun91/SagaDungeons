@@ -246,6 +246,7 @@ public class CommandManager implements CommandExecutor, TabCompleter {
                 adminSubCommands.add("setspawn");
                 adminSubCommands.add("gui");
                 adminSubCommands.add("spawner");
+                adminSubCommands.add("edit");
                 adminSubCommands.add("help");
 
                 for (String subCommand : adminSubCommands) {

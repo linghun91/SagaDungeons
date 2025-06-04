@@ -42,6 +42,9 @@ public class DungeonTemplate {
     private boolean forceGameMode = true; // 是否强制游戏模式
     private String gameMode = "ADVENTURE"; // 强制的游戏模式
 
+    // 禁止指令列表
+    private final List<String> blockCMDList = new ArrayList<>();
+
     /**
      * 构造函数
      * @param name 模板名称
@@ -519,5 +522,71 @@ public class DungeonTemplate {
      */
     public void setGameMode(String gameMode) {
         this.gameMode = gameMode;
+    }
+
+    /**
+     * 获取禁止指令列表
+     * @return 禁止指令列表
+     */
+    public List<String> getBlockCMDList() {
+        return blockCMDList;
+    }
+
+    /**
+     * 添加禁止指令
+     * @param command 禁止的指令
+     */
+    public void addBlockCommand(String command) {
+        if (command != null && !command.isEmpty() && !blockCMDList.contains(command)) {
+            blockCMDList.add(command);
+        }
+    }
+
+    /**
+     * 移除禁止指令
+     * @param command 要移除的指令
+     * @return 是否成功移除
+     */
+    public boolean removeBlockCommand(String command) {
+        return blockCMDList.remove(command);
+    }
+
+    /**
+     * 清空禁止指令列表
+     */
+    public void clearBlockCommands() {
+        blockCMDList.clear();
+    }
+
+    /**
+     * 检查指令是否被禁止
+     * @param command 要检查的指令
+     * @return 是否被禁止
+     */
+    public boolean isCommandBlocked(String command) {
+        if (command == null || command.isEmpty()) {
+            return false;
+        }
+
+        // 移除开头的斜杠
+        String cleanCommand = command.startsWith("/") ? command.substring(1) : command;
+
+        // 检查是否在禁止列表中
+        for (String blockedCmd : blockCMDList) {
+            String cleanBlockedCmd = blockedCmd.startsWith("/") ? blockedCmd.substring(1) : blockedCmd;
+            if (cleanCommand.toLowerCase().startsWith(cleanBlockedCmd.toLowerCase())) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * 检查是否有禁止指令配置
+     * @return 是否有禁止指令配置
+     */
+    public boolean hasBlockCommands() {
+        return !blockCMDList.isEmpty();
     }
 }

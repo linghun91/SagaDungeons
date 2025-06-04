@@ -56,6 +56,9 @@ public class PlayerListener extends AbstractListener {
         if (playerData.isInDungeon()) {
             // 离开副本
             plugin.getDungeonManager().leaveDungeon(player);
+        } else {
+            // 清理玩家安全状态
+            plugin.getDungeonSecurityManager().cleanupPlayerSecurity(player);
         }
     }
 
@@ -171,6 +174,9 @@ public class PlayerListener extends AbstractListener {
 
                 // 清除玩家当前副本状态
                 playerData.setCurrentDungeonId(null);
+
+                // 撤销合法副本进入权限
+                plugin.getDungeonSecurityManager().revokeLegalAccess(player);
 
                 // 恢复玩家游戏模式
                 plugin.getDungeonManager().restorePlayerGameMode(player);
