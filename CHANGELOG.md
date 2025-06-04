@@ -1,5 +1,38 @@
 # SagaDungeons 更新日志
 
+## 版本 1.1.0.98 (2025-06-04)
+
+### 新增功能
+
+- 完成了GUI管理系统开发
+  - 实现了EditCommand和TemplateEditMainGUI主界面
+  - 完成了基础信息编辑GUI(TemplateBasicEditGUI)
+  - 完成了创建条件编辑GUI(TemplateConditionsEditGUI)
+  - 完成了奖励系统编辑GUI(TemplateRewardsEditGUI)
+  - 完成了通关条件和刷怪点编辑GUI(TemplateCompletionEditGUI/TemplateSpawnersEditGUI)
+
+### 功能改进
+
+- 实现了完整的聊天输入监听系统
+  - 支持数值、文本、小数输入验证
+  - 集成AsyncPlayerChatEvent确保Bukkit兼容性
+  - 使用BukkitScheduler确保线程安全
+- 完成了配置数据读取系统
+  - 所有GUI界面现在显示配置文件中的实际数据
+  - 支持实时配置读取和界面更新
+- 实现了高级管理界面系统
+  - 物品奖励管理界面(ItemRewardManageGUI)
+  - 命令奖励管理界面(CommandRewardManageGUI)
+  - 时间奖励管理界面(TimeRewardManageGUI)
+  - 物品条件管理界面(ItemConditionManageGUI)
+  - 组合条件管理界面(CompositeConditionManageGUI)
+- 完成了刷怪点管理系统
+  - 刷怪点编辑功能(SpawnerEditGUI)
+  - 刷怪点传送功能
+  - 刷怪点添加功能(SpawnerAddGUI)
+- 实现了位置设置系统
+  - 到达区域位置设置功能
+
 ## 版本 1.0.9.7 (2025-06-03)
 
 ### 新增功能
