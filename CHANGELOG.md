@@ -1,5 +1,15 @@
 # SagaDungeons 更新日志
 
+## 版本 1.2.0.13 (2025-06-04)
+
+### 新增功能
+
+- 实现了自定义遣返点功能
+  - 添加了`/sd admin setback`命令，管理员可设置非法玩家遣返位置
+  - 创建了SetBackCommand类处理遣返点设置
+  - 增强了DungeonSecurityManager，优先使用自定义遣返点，包含安全位置检查
+  - 在config.yml中添加了security.custom-kickback-location配置项
+
 ## 版本 1.1.0.99 (2025-06-04)
 
 ### 新增功能
