@@ -1,0 +1,62 @@
+# SagaDungeons 调试消息配置文件
+# 版本: 1.0.0
+
+dungeon:
+  create:
+    start: "开始创建副本，模板: %template%"
+    world-copy: "正在复制世界，源: %source%，目标: %target%"
+    world-copy-complete: "世界复制完成，耗时: %time%ms"
+    world-load: "正在加载副本世界: %world%"
+    world-load-complete: "副本世界加载完成: %world%"
+    instance-create: "创建副本实例，ID: %id%，所有者: %owner%"
+    complete: "副本创建完成，ID: %id%，所有者: %owner%，世界: %world%"
+  delete:
+    start: "开始删除副本，ID: %id%"
+    world-unload: "正在卸载副本世界: %world%"
+    world-delete: "正在删除副本世界文件: %world%"
+    instance-remove: "正在移除副本实例: %id%"
+    complete: "副本删除完成，ID: %id%"
+  timeout:
+    start: "副本开始计时，ID: %id%，超时时间: %timeout%秒"
+    warning: "副本即将超时，ID: %id%，剩余时间: %time%秒"
+    expired: "副本已超时，ID: %id%，开始清理"
+
+hook:
+  vault:
+    init: "正在初始化Vault经济系统"
+    success: "Vault经济系统初始化成功"
+    fail: "Vault经济系统初始化失败: %reason%"
+  playerpoints:
+    init: "正在初始化PlayerPoints点券系统"
+    success: "PlayerPoints点券系统初始化成功"
+    fail: "PlayerPoints点券系统初始化失败: %reason%"
+  mythicmobs:
+    init: "正在初始化MythicMobs系统"
+    success: "MythicMobs系统初始化成功"
+    fail: "MythicMobs系统初始化失败: %reason%"
+    spawner-create: "创建MythicMobs刷怪点，位置: %location%，类型: %type%"
+    spawner-remove: "移除MythicMobs刷怪点，ID: %id%"
+  placeholderapi:
+    init: "正在初始化PlaceholderAPI系统"
+    success: "PlaceholderAPI系统初始化成功"
+    fail: "PlaceholderAPI系统初始化失败: %reason%"
+    register: "注册占位符: %identifier%"
+
+world:
+  copy:
+    start: "开始复制世界，源: %source%，目标: %target%"
+    progress: "世界复制进度: %progress%%"
+    complete: "世界复制完成，耗时: %time%ms"
+  load:
+    start: "开始加载世界: %world%"
+    complete: "世界加载完成: %world%"
+  unload:
+    start: "开始卸载世界: %world%"
+    complete: "世界卸载完成: %world%"
+  delete:
+    start: "开始删除世界文件: %world%"
+    complete: "世界文件删除完成: %world%"
+  cleanup:
+    start: "开始清理残留副本世界"
+    found: "发现残留副本世界: %world%"
+    complete: "残留副本世界清理完成，共清理: %count%个"

@@ -1,0 +1,107 @@
+# 示例副本模板配置文件
+
+# 基本信息
+name: "example"                # 模板名称（必须与文件夹名称相同）
+displayName: "&6示例副本"       # 显示名称（支持颜色代码）
+description: "这是一个示例副本，用于展示SagaDungeons的功能。" # 描述
+defaultTimeout: 1800           # 默认超时时间（秒）
+maxPlayers: 5                  # 最大玩家数
+
+# 创建条件
+creationConditions:
+  # 金币条件（需要Vault）
+  money: 100
+  
+  # 点券条件（需要PlayerPoints）
+  points: 10
+  
+  # 等级条件
+  level: 10
+  
+  # 物品条件
+  items:
+    item1:
+      material: DIAMOND
+      amount: 1
+      name: "特殊钻石"
+      lore:
+        - "这是一个特殊的钻石"
+        - "用于创建副本"
+
+# 死亡限制
+deathLimit: 3
+
+# 复活道具
+reviveItem:
+  material: GOLDEN_APPLE
+  name: "复活苹果"
+
+# 通关条件
+completion:
+  # 是否需要击杀所有怪物
+  killAll: true
+  
+  # 是否需要到达特定区域
+  reachArea:
+    location: "world,100,64,100"
+    radius: 5
+  
+  # 是否需要击杀特定怪物
+  killSpecific:
+    mobName: "Boss"
+  
+  # 是否需要击杀足够数量的怪物
+  killCount:
+    count: 10
+
+# 奖励
+rewards:
+  # 金币奖励（需要Vault）
+  money: 1000
+  
+  # 点券奖励（需要PlayerPoints）
+  points: 100
+  
+  # 经验奖励
+  experience: 500
+  
+  # 物品奖励
+  items:
+    item1:
+      material: DIAMOND_SWORD
+      amount: 1
+      name: "传说之剑"
+      lore:
+        - "这是一把传说中的剑"
+        - "只有完成副本的勇士才能获得"
+    
+    item2:
+      material: GOLDEN_APPLE
+      amount: 5
+      name: "奖励金苹果"
+      lore:
+        - "副本奖励"
+  
+  # 命令奖励
+  commands:
+    command1:
+      command: "give %player% minecraft:diamond 10"
+      description: "获得10个钻石"
+    
+    command2:
+      command: "broadcast %player% 完成了示例副本！"
+      description: "全服公告"
+
+# MythicMobs刷怪点
+mythicMobsSpawners:
+  spawner1:
+    mobType: "SkeletonKing"
+    location: "world,100,64,100"
+    cooldown: 30
+    amount: 1
+  
+  spawner2:
+    mobType: "ZombieHorde"
+    location: "world,110,64,110"
+    cooldown: 60
+    amount: 5

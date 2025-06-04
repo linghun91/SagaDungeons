@@ -1,0 +1,37 @@
+name: SagaDungeons
+version: '1.0.0'
+main: cn.i7mc.sagadungeons.SagaDungeons
+api-version: '1.20'
+authors: [linghun91]
+description: 一个功能完善的Minecraft副本系统插件
+website: https://github.com/linghun91/SagaDungeons
+
+# 软依赖插件
+softdepend:
+  - Vault
+  - PlayerPoints
+  - MythicMobs
+  - PlaceholderAPI
+
+# 命令
+commands:
+  sagadungeons:
+    description: SagaDungeons主命令
+    aliases: [sd]
+    usage: /sd help
+    permission: sagadungeons.use
+
+# 权限
+permissions:
+  sagadungeons.use:
+    description: 允许使用SagaDungeons基本命令
+    default: true
+  sagadungeons.admin:
+    description: 允许使用SagaDungeons管理员命令
+    default: op
+  sagadungeons.create.all:
+    description: 允许创建任何模板的副本
+    default: op
+  sagadungeons.join:
+    description: 允许加入副本
+    default: true
