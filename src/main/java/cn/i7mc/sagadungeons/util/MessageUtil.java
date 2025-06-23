@@ -14,7 +14,13 @@ import java.util.Map;
  */
 public class MessageUtil {
 
-    private static final SagaDungeons plugin = SagaDungeons.getInstance();
+    /**
+     * 获取插件实例
+     * @return 插件实例
+     */
+    private static SagaDungeons getPlugin() {
+        return SagaDungeons.getInstance();
+    }
 
     /**
      * 向发送者发送消息
@@ -22,6 +28,11 @@ public class MessageUtil {
      * @param path 消息路径
      */
     public static void sendMessage(CommandSender sender, String path) {
+        SagaDungeons plugin = getPlugin();
+        if (plugin == null || plugin.getConfigManager() == null || plugin.getConfigManager().getMessageManager() == null) {
+            sender.sendMessage("§c[SagaDungeons] 消息系统未初始化: " + path);
+            return;
+        }
         String message = plugin.getConfigManager().getMessageManager().getPrefixedMessage(path);
         sender.sendMessage(message);
     }
@@ -33,6 +44,11 @@ public class MessageUtil {
      * @param placeholders 变量映射
      */
     public static void sendMessage(CommandSender sender, String path, Map<String, String> placeholders) {
+        SagaDungeons plugin = getPlugin();
+        if (plugin == null || plugin.getConfigManager() == null || plugin.getConfigManager().getMessageManager() == null) {
+            sender.sendMessage("§c[SagaDungeons] 消息系统未初始化: " + path);
+            return;
+        }
         String message = plugin.getConfigManager().getMessageManager().getPrefixedMessage(path, placeholders);
         sender.sendMessage(message);
     }
@@ -43,6 +59,11 @@ public class MessageUtil {
      * @param path 消息路径
      */
     public static void sendMessage(Player player, String path) {
+        SagaDungeons plugin = getPlugin();
+        if (plugin == null || plugin.getConfigManager() == null || plugin.getConfigManager().getMessageManager() == null) {
+            player.sendMessage("§c[SagaDungeons] 消息系统未初始化: " + path);
+            return;
+        }
         plugin.getConfigManager().getMessageManager().sendMessage(player, path);
     }
 
@@ -53,6 +74,11 @@ public class MessageUtil {
      * @param placeholders 变量映射
      */
     public static void sendMessage(Player player, String path, Map<String, String> placeholders) {
+        SagaDungeons plugin = getPlugin();
+        if (plugin == null || plugin.getConfigManager() == null || plugin.getConfigManager().getMessageManager() == null) {
+            player.sendMessage("§c[SagaDungeons] 消息系统未初始化: " + path);
+            return;
+        }
         plugin.getConfigManager().getMessageManager().sendMessage(player, path, placeholders);
     }
 

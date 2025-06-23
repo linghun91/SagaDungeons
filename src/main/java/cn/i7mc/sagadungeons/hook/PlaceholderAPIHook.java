@@ -2,12 +2,13 @@ package cn.i7mc.sagadungeons.hook;
 
 import cn.i7mc.sagadungeons.SagaDungeons;
 import cn.i7mc.sagadungeons.dungeon.DungeonInstance;
+import cn.i7mc.sagadungeons.model.DungeonTemplate;
 import cn.i7mc.sagadungeons.model.PlayerData;
 import cn.i7mc.sagadungeons.util.TimeUtil;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.entity.Player;
 
 /**
  * PlaceholderAPI集成
@@ -127,6 +128,13 @@ public class PlaceholderAPIHook extends PlaceholderExpansion {
                 return dungeon.isPublic() ? "true" : "false";
             case "dungeon_state":
                 return dungeon.getState().name();
+            case "display":
+                // 获取模板的世界显示名称
+                DungeonTemplate template = plugin.getConfigManager().getTemplateManager().getTemplate(dungeon.getTemplateName());
+                if (template != null && template.getWorldDisplay() != null) {
+                    return ChatColor.translateAlternateColorCodes('&', template.getWorldDisplay());
+                }
+                return dungeon.getTemplateName();
             default:
                 return null;
         }

@@ -2,13 +2,22 @@ package cn.i7mc.sagadungeons.command;
 
 import cn.i7mc.sagadungeons.SagaDungeons;
 import cn.i7mc.sagadungeons.command.admin.AdminCommand;
+import cn.i7mc.sagadungeons.command.admin.CopyWorldCommand;
+import cn.i7mc.sagadungeons.command.admin.CreateTemplateCommand;
+import cn.i7mc.sagadungeons.command.admin.ForceCloseCommand;
+import cn.i7mc.sagadungeons.command.admin.GUICommand;
+import cn.i7mc.sagadungeons.command.admin.SetBackCommand;
+import cn.i7mc.sagadungeons.command.admin.SetItemCommand;
+import cn.i7mc.sagadungeons.command.admin.SetSpawnCommand;
+import cn.i7mc.sagadungeons.command.admin.SetWorldCommand;
+import cn.i7mc.sagadungeons.command.admin.SpawnerAdminCommand;
 import cn.i7mc.sagadungeons.command.player.CreateCommand;
 import cn.i7mc.sagadungeons.command.player.InviteCommand;
 import cn.i7mc.sagadungeons.command.player.JoinCommand;
 import cn.i7mc.sagadungeons.command.player.KickCommand;
+import cn.i7mc.sagadungeons.command.player.LeaveCommand;
 import cn.i7mc.sagadungeons.command.player.ListCommand;
 import cn.i7mc.sagadungeons.command.player.PublicCommand;
-import cn.i7mc.sagadungeons.command.player.SpawnerCommand;
 import cn.i7mc.sagadungeons.command.player.StatsCommand;
 import cn.i7mc.sagadungeons.util.MessageUtil;
 import org.bukkit.command.Command;
@@ -53,12 +62,21 @@ public class CommandManager implements CommandExecutor, TabCompleter {
         registerSubCommand(new StatsCommand(plugin));
         registerSubCommand(new InviteCommand(plugin));
         registerSubCommand(new JoinCommand(plugin));
+        registerSubCommand(new LeaveCommand(plugin));
         registerSubCommand(new KickCommand(plugin));
         registerSubCommand(new PublicCommand(plugin));
-        registerSubCommand(new SpawnerCommand(plugin));
 
         // 注册管理员子命令
         registerSubCommand(new AdminCommand(plugin));
+        registerSubCommand(new CreateTemplateCommand(plugin));
+        registerSubCommand(new SetWorldCommand(plugin));
+        registerSubCommand(new CopyWorldCommand(plugin));
+        registerSubCommand(new SetItemCommand(plugin));
+        registerSubCommand(new ForceCloseCommand(plugin));
+        registerSubCommand(new SetSpawnCommand(plugin));
+        registerSubCommand(new GUICommand(plugin));
+        registerSubCommand(new SpawnerAdminCommand(plugin));
+        registerSubCommand(new SetBackCommand(plugin));
     }
 
     /**
@@ -130,11 +148,15 @@ public class CommandManager implements CommandExecutor, TabCompleter {
                 return true;
             }
 
-            // 获取管理员子命令
-            String adminSubCommand = args[1].toLowerCase();
-
             // 处理管理员子命令
-            // TODO: 处理管理员子命令
+            String[] adminArgs = new String[args.length - 1];
+            System.arraycopy(args, 1, adminArgs, 0, args.length - 1);
+
+            // 执行管理员命令
+            AbstractCommand adminCommand = commands.get("admin");
+            if (adminCommand != null) {
+                adminCommand.execute(sender, adminArgs);
+            }
 
             return true;
         }
@@ -192,19 +214,17 @@ public class CommandManager implements CommandExecutor, TabCompleter {
                 completions.add("help");
             }
 
-            // 添加重载命令
-            if (sender.hasPermission("sagadungeons.admin") && "reload".startsWith(arg)) {
-                completions.add("reload");
-            }
-
-            // 添加管理员命令
+            // 添加重载命令 - 移至管理员命令
             if (sender.hasPermission("sagadungeons.admin") && "admin".startsWith(arg)) {
                 completions.add("admin");
             }
 
             // 添加子命令
             for (AbstractCommand subCommand : commands.values()) {
-                if (subCommand.getName().toLowerCase().startsWith(arg) && subCommand.hasPermission(sender)) {
+                // 排除createtemplate等管理员直接命令，保留在admin子命令中
+                if (!isAdminOnlyCommand(subCommand.getName()) &&
+                    subCommand.getName().toLowerCase().startsWith(arg) &&
+                    subCommand.hasPermission(sender)) {
                     completions.add(subCommand.getName());
                 }
             }
@@ -215,7 +235,28 @@ public class CommandManager implements CommandExecutor, TabCompleter {
             // 检查权限
             if (sender.hasPermission("sagadungeons.admin")) {
                 // 添加管理员子命令
-                // TODO: 添加管理员子命令
+                List<String> adminSubCommands = new ArrayList<>();
+                adminSubCommands.add("reload");
+                adminSubCommands.add("delete");
+                adminSubCommands.add("tp");
+                adminSubCommands.add("list");
+                adminSubCommands.add("createtemplate");
+                adminSubCommands.add("setworld");
+                adminSubCommands.add("copyworld");
+                adminSubCommands.add("setitem");
+                adminSubCommands.add("forceclose");
+                adminSubCommands.add("setspawn");
+                adminSubCommands.add("gui");
+                adminSubCommands.add("spawner");
+                adminSubCommands.add("edit");
+                adminSubCommands.add("setback");
+                adminSubCommands.add("help");
+
+                for (String subCommand : adminSubCommands) {
+                    if (subCommand.startsWith(arg)) {
+                        completions.add(subCommand);
+                    }
+                }
             }
         } else if (args.length >= 2) {
             // 获取子命令
@@ -242,6 +283,24 @@ public class CommandManager implements CommandExecutor, TabCompleter {
     }
 
     /**
+     * 判断是否为仅管理员使用的命令
+     * 这些命令应该通过/sd admin来访问
+     * @param commandName 命令名称
+     * @return 是否为仅管理员使用的命令
+     */
+    private boolean isAdminOnlyCommand(String commandName) {
+        // 这些命令仅应通过/sd admin子命令访问
+        return commandName.equalsIgnoreCase("createtemplate") ||
+               commandName.equalsIgnoreCase("setworld") ||
+               commandName.equalsIgnoreCase("copyworld") ||
+               commandName.equalsIgnoreCase("setitem") ||
+               commandName.equalsIgnoreCase("forceclose") ||
+               commandName.equalsIgnoreCase("setspawn") ||
+               commandName.equalsIgnoreCase("gui") ||
+               commandName.equalsIgnoreCase("spawner");
+    }
+
+    /**
      * 显示帮助信息
      * @param sender 命令发送者
      */
@@ -255,14 +314,14 @@ public class CommandManager implements CommandExecutor, TabCompleter {
         MessageUtil.sendMessage(sender, "command.help.stats");
         MessageUtil.sendMessage(sender, "command.help.invite");
         MessageUtil.sendMessage(sender, "command.help.join");
+        MessageUtil.sendMessage(sender, "command.help.leave");
         MessageUtil.sendMessage(sender, "command.help.kick");
         MessageUtil.sendMessage(sender, "command.help.public");
-        MessageUtil.sendMessage(sender, "command.help.spawner");
+        MessageUtil.sendMessage(sender, "command.help.help");
 
-        // 如果有管理员权限，发送管理员命令帮助
+        // 如果有管理员权限，提示使用管理员命令
         if (sender.hasPermission("sagadungeons.admin")) {
             MessageUtil.sendMessage(sender, "command.help.admin");
-            MessageUtil.sendMessage(sender, "command.help.reload");
         }
 
         // 发送帮助页脚
@@ -282,8 +341,17 @@ public class CommandManager implements CommandExecutor, TabCompleter {
         MessageUtil.sendMessage(sender, "command.admin.help.delete");
         MessageUtil.sendMessage(sender, "command.admin.help.tp");
         MessageUtil.sendMessage(sender, "command.admin.help.list");
+        MessageUtil.sendMessage(sender, "command.admin.help.createtemplate");
+        MessageUtil.sendMessage(sender, "command.admin.help.setworld");
+        MessageUtil.sendMessage(sender, "command.admin.help.copyworld");
+        MessageUtil.sendMessage(sender, "command.admin.help.setitem");
+        MessageUtil.sendMessage(sender, "command.admin.help.forceclose");
+        MessageUtil.sendMessage(sender, "command.admin.help.setspawn");
+        MessageUtil.sendMessage(sender, "command.admin.help.gui");
+        MessageUtil.sendMessage(sender, "command.admin.help.spawner");
+        MessageUtil.sendMessage(sender, "command.admin.help.help");
 
-        // 发送管理员帮助页脚
+        // 发送帮助页脚
         MessageUtil.sendMessage(sender, "command.admin.help.footer");
     }
 }

@@ -12,7 +12,9 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -31,7 +33,7 @@ public class DungeonManageGUI extends AbstractGUI {
      * @param dungeonId 副本ID
      */
     public DungeonManageGUI(SagaDungeons plugin, Player player, String dungeonId) {
-        super(plugin, player, "&6副本管理", 36);
+        super(plugin, player, plugin.getConfigManager().getGUILanguageManager().getGUIText("dungeon-manage.title"), 36);
         this.dungeonId = dungeonId;
         this.dungeon = plugin.getDungeonManager().getDungeon(dungeonId);
     }
@@ -50,31 +52,31 @@ public class DungeonManageGUI extends AbstractGUI {
         
         // 填充边框
         for (int i = 0; i < 9; i++) {
-            inventory.setItem(i, new ItemBuilder(Material.BLACK_STAINED_GLASS_PANE).setName(" ").build());
-            inventory.setItem(27 + i, new ItemBuilder(Material.BLACK_STAINED_GLASS_PANE).setName(" ").build());
+            inventory.setItem(i, new ItemBuilder(Material.BLACK_STAINED_GLASS_PANE).setName(getGUIText("common.border")).build());
+            inventory.setItem(27 + i, new ItemBuilder(Material.BLACK_STAINED_GLASS_PANE).setName(getGUIText("common.border")).build());
         }
-        
+
         for (int i = 0; i < 3; i++) {
-            inventory.setItem(i * 9, new ItemBuilder(Material.BLACK_STAINED_GLASS_PANE).setName(" ").build());
-            inventory.setItem(i * 9 + 8, new ItemBuilder(Material.BLACK_STAINED_GLASS_PANE).setName(" ").build());
+            inventory.setItem(i * 9, new ItemBuilder(Material.BLACK_STAINED_GLASS_PANE).setName(getGUIText("common.border")).build());
+            inventory.setItem(i * 9 + 8, new ItemBuilder(Material.BLACK_STAINED_GLASS_PANE).setName(getGUIText("common.border")).build());
         }
         
         // 添加副本信息
         inventory.setItem(4, createDungeonInfoItem());
         
         // 添加功能按钮
-        inventory.setItem(11, new ItemBuilder(Material.ENDER_PEARL).setName("&a传送到副本").build());
-        inventory.setItem(13, new ItemBuilder(Material.PLAYER_HEAD).setName("&a邀请玩家").build());
-        
+        inventory.setItem(11, new ItemBuilder(Material.ENDER_PEARL).setName(getGUIText("dungeon-manage.teleport-to-dungeon")).build());
+        inventory.setItem(13, new ItemBuilder(Material.PLAYER_HEAD).setName(getGUIText("dungeon-manage.invite-player")).build());
+
         // 添加公开/私有切换按钮
         if (dungeon.isPublic()) {
-            inventory.setItem(15, new ItemBuilder(Material.REDSTONE_TORCH).setName("&c设为私有").build());
+            inventory.setItem(15, new ItemBuilder(Material.REDSTONE_TORCH).setName(getGUIText("dungeon-manage.set-private")).build());
         } else {
-            inventory.setItem(15, new ItemBuilder(Material.TORCH).setName("&a设为公开").build());
+            inventory.setItem(15, new ItemBuilder(Material.TORCH).setName(getGUIText("dungeon-manage.set-public")).build());
         }
-        
+
         // 添加关闭按钮
-        inventory.setItem(31, new ItemBuilder(Material.BARRIER).setName("&c关闭").build());
+        inventory.setItem(31, new ItemBuilder(Material.BARRIER).setName(getGUIText("common.close")).build());
     }
 
     /**
@@ -152,20 +154,42 @@ public class DungeonManageGUI extends AbstractGUI {
         
         // 创建描述
         List<String> lore = new ArrayList<>();
-        lore.add("&7副本ID: &e" + dungeon.getId());
-        lore.add("&7创建者: &e" + Bukkit.getOfflinePlayer(dungeon.getOwnerUUID()).getName());
-        lore.add("&7状态: &e" + dungeon.getState().name());
-        lore.add("&7剩余时间: &e" + TimeUtil.formatTimeShort(dungeon.getRemainingTime()));
-        lore.add("&7玩家数量: &e" + dungeon.getPlayerCount());
-        lore.add("&7公开状态: &e" + (dungeon.isPublic() ? "公开" : "私有"));
+
+        Map<String, String> placeholders = new HashMap<>();
+        placeholders.put("id", dungeon.getId());
+        lore.add(getGUIText("dungeon-manage.dungeon-id", placeholders));
+
+        placeholders.clear();
+        placeholders.put("creator", Bukkit.getOfflinePlayer(dungeon.getOwnerUUID()).getName());
+        lore.add(getGUIText("dungeon-manage.creator", placeholders));
+
+        placeholders.clear();
+        placeholders.put("status", dungeon.getState().name());
+        lore.add(getGUIText("dungeon-manage.status", placeholders));
+
+        placeholders.clear();
+        placeholders.put("time", TimeUtil.formatTimeShort(dungeon.getRemainingTime()));
+        lore.add(getGUIText("dungeon-manage.remaining-time", placeholders));
+
+        placeholders.clear();
+        placeholders.put("count", String.valueOf(dungeon.getPlayerCount()));
+        lore.add(getGUIText("dungeon-manage.player-count", placeholders));
+
+        placeholders.clear();
+        String publicStatus = dungeon.isPublic() ? getGUIText("dungeon-manage.public") : getGUIText("dungeon-manage.private");
+        placeholders.put("status", publicStatus);
+        lore.add(getGUIText("dungeon-manage.public-status", placeholders));
         
         // 添加允许的玩家列表
         if (!dungeon.getAllowedPlayers().isEmpty()) {
             lore.add("");
-            lore.add("&7允许的玩家:");
+            lore.add(getGUIText("dungeon-manage.allowed-players-title"));
             for (UUID uuid : dungeon.getAllowedPlayers()) {
                 OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(uuid);
-                lore.add("&7- &e" + (offlinePlayer.getName() != null ? offlinePlayer.getName() : uuid.toString()));
+                String playerName = offlinePlayer.getName() != null ? offlinePlayer.getName() : uuid.toString();
+                Map<String, String> playerPlaceholders = new HashMap<>();
+                playerPlaceholders.put("name", playerName);
+                lore.add(getGUIText("dungeon-manage.allowed-player-item", playerPlaceholders));
             }
         }
         

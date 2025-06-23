@@ -6,8 +6,10 @@ import cn.i7mc.sagadungeons.dungeon.cooldown.CooldownManager;
 import cn.i7mc.sagadungeons.dungeon.condition.RequirementManager;
 import cn.i7mc.sagadungeons.dungeon.death.DeathManager;
 import cn.i7mc.sagadungeons.dungeon.reward.RewardManager;
+import cn.i7mc.sagadungeons.dungeon.trigger.TriggerManager;
 import cn.i7mc.sagadungeons.model.DungeonTemplate;
 import cn.i7mc.sagadungeons.model.PlayerData;
+import cn.i7mc.sagadungeons.util.MessageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -35,14 +37,17 @@ public class DungeonManager {
     private final DeathManager deathManager;
     private final CompletionManager completionManager;
     private final RewardManager rewardManager;
+    private final TriggerManager triggerManager;
     private int nextDungeonNumber = 1;
 
     public DungeonManager(SagaDungeons plugin) {
         this.plugin = plugin;
         this.cooldownManager = new CooldownManager(plugin);
         this.deathManager = new DeathManager(plugin);
-        this.completionManager = new CompletionManager(plugin);
+        // 使用TemplateManager中的CompletionManager实例，而不是创建新的
+        this.completionManager = plugin.getConfigManager().getTemplateManager().getCompletionManager();
         this.rewardManager = new RewardManager(plugin);
+        this.triggerManager = new TriggerManager(plugin);
 
         // 加载副本数据
         loadDungeonData();
@@ -80,6 +85,12 @@ public class DungeonManager {
         // 检查冷却时间
         int cooldownSeconds = plugin.getConfigManager().getCreationCooldown();
         if (!cooldownManager.canCreateDungeon(player.getUniqueId(), cooldownSeconds)) {
+            return false;
+        }
+
+        // 检查是否有其他副本正在创建中
+        if (!plugin.getWorldManager().canCreate()) {
+            plugin.getConfigManager().getMessageManager().sendMessage(player, "dungeon.creation.locked");
             return false;
         }
 
@@ -121,6 +132,9 @@ public class DungeonManager {
                     // 设置玩家当前副本
                     playerData.setCurrentDungeonId(dungeonId);
 
+                    // 授予合法副本进入权限
+                    plugin.getDungeonSecurityManager().grantLegalAccess(player);
+
                     // 更新玩家创建时间
                     playerData.setLastCreationTime(System.currentTimeMillis());
                     cooldownManager.setLastCreationTime(player.getUniqueId(), System.currentTimeMillis());
@@ -128,9 +142,35 @@ public class DungeonManager {
                     // 更新玩家统计数据
                     playerData.incrementTotalCreated();
 
+                    // 初始化副本刷怪点 - 延迟20tick执行，确保世界完全加载
+                    Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                        plugin.getMobSpawnerManager().initializeSpawners(dungeonId, templateName, world);
+                    }, 20L);
+
+                    // 为副本实例创建独立的通关条件
+                    completionManager.createConditionsForDungeon(dungeonId, templateName);
+
                     // 传送玩家到副本
-                    Location spawnLocation = world.getSpawnLocation();
+                    Location spawnLocation;
+
+                    // 检查模板是否有指定重生点
+                    if (template.hasSpawnLocation()) {
+                        // 使用模板中的重生点（不包含世界名）
+                        spawnLocation = cn.i7mc.sagadungeons.util.LocationUtil.stringToLocationWithoutWorld(template.getSpawnLocation(), world);
+
+                        // 如果重生点不可用，使用世界默认出生点
+                        if (spawnLocation == null) {
+                            spawnLocation = world.getSpawnLocation();
+                        }
+                    } else {
+                        // 使用世界默认出生点
+                        spawnLocation = world.getSpawnLocation();
+                    }
+
                     player.teleport(spawnLocation);
+
+                    // 设置游戏模式
+                    setPlayerGameMode(player, template);
 
                     // 启动超时任务
                     instance.startTimeoutTask();
@@ -150,14 +190,44 @@ public class DungeonManager {
         // 获取副本实例
         DungeonInstance instance = activeDungeons.get(dungeonId);
         if (instance == null) {
-            return false;
+            // 尝试直接删除世界文件，可能是副本实例已经被移除但世界文件仍然存在
+            String worldName = plugin.getConfigManager().getWorldPrefix() + dungeonId;
+            plugin.getLogger().info("副本实例不存在，尝试直接删除世界文件: " + worldName);
+
+            // 使用清理残留副本世界的方法删除
+            cleanupDungeonWorld(worldName);
+            return true;
         }
+
+        // 设置副本状态为正在删除
+        instance.setState(DungeonState.DELETING);
 
         // 获取副本世界
         World world = instance.getWorld();
         if (world == null) {
-            return false;
+            // 如果世界为空，尝试通过ID构建世界名称
+            String worldName = plugin.getConfigManager().getWorldPrefix() + dungeonId;
+            plugin.getLogger().info("副本世界为空，尝试通过ID构建世界名称: " + worldName);
+
+            // 从活动副本列表中移除
+            activeDungeons.remove(dungeonId);
+
+            // 使用清理残留副本世界的方法删除
+            cleanupDungeonWorld(worldName);
+            return true;
         }
+
+        // 取消超时任务
+        instance.cancelTimeoutTask();
+
+        // 清理副本刷怪点
+        plugin.getMobSpawnerManager().cleanupSpawners(dungeonId);
+
+        // 清理副本通关条件
+        completionManager.cleanupDungeonConditions(dungeonId);
+
+        // 清理副本死亡次数记录
+        deathManager.cleanupDungeonDeathCounts(dungeonId);
 
         // 将所有玩家传送出副本
         for (Player player : world.getPlayers()) {
@@ -173,22 +243,56 @@ public class DungeonManager {
                 player.teleport(Bukkit.getWorlds().get(0).getSpawnLocation());
             }
 
+            // 恢复玩家游戏模式
+            restorePlayerGameMode(player);
+
+            // 清除床重生位置，避免残留的床重生位置影响后续游戏
+            player.setBedSpawnLocation(null, true);
+
             // 清除玩家当前副本
             playerData.setCurrentDungeonId(null);
+
+            // 发送消息通知玩家副本被管理员关闭
+            plugin.getConfigManager().getMessageManager().sendMessage(player, "dungeon.death.admin-close",
+                    MessageUtil.createPlaceholders("id", dungeonId));
         }
 
-        // 取消超时任务
-        instance.cancelTimeoutTask();
+        // 立即从活动副本列表中移除，防止玩家加入正在删除的副本
+        activeDungeons.remove(dungeonId);
 
-        // 卸载并删除副本世界
-        plugin.getWorldManager().deleteDungeonWorld(world.getName(), success -> {
-            if (success) {
-                // 从活动副本列表中移除
-                activeDungeons.remove(dungeonId);
-            }
-        });
+        // 延迟10tick后删除世界
+        final String worldName = world.getName();
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            // 使用清理残留副本世界的方法删除
+            cleanupDungeonWorld(worldName);
+        }, 10L);
 
         return true;
+    }
+
+    /**
+     * 清理副本世界
+     * 使用与服务端启动时相同的方法清理副本世界
+     * @param worldName 世界名称
+     */
+    private void cleanupDungeonWorld(String worldName) {
+        // 检查世界是否存在
+        World world = Bukkit.getWorld(worldName);
+        if (world != null) {
+            // 世界存在，使用WorldManager的方法卸载并删除
+            plugin.getWorldManager().deleteDungeonWorld(worldName, success -> {
+                if (success) {
+                } else {
+                }
+            });
+        } else {
+            // 检查世界文件夹是否存在
+            File worldFolder = new File(Bukkit.getWorldContainer(), worldName);
+            if (worldFolder.exists() && worldFolder.isDirectory()) {
+                // 世界文件夹存在，直接删除
+                plugin.getWorldManager().deleteWorldFolder(worldName, worldFolder);
+            }
+        }
     }
 
     /**
@@ -201,6 +305,13 @@ public class DungeonManager {
         // 获取副本实例
         DungeonInstance instance = activeDungeons.get(dungeonId);
         if (instance == null) {
+            return false;
+        }
+
+        // 检查副本状态
+        if (instance.getState() == DungeonState.DELETING ||
+            instance.getState() == DungeonState.COMPLETED ||
+            instance.getState() == DungeonState.TIMEOUT) {
             return false;
         }
 
@@ -230,9 +341,33 @@ public class DungeonManager {
         playerData.setCurrentDungeonId(dungeonId);
         playerData.incrementTotalJoined();
 
+        // 授予合法副本进入权限
+        plugin.getDungeonSecurityManager().grantLegalAccess(player);
+
         // 传送玩家到副本
-        Location spawnLocation = world.getSpawnLocation();
+        Location spawnLocation;
+
+        // 获取模板
+        DungeonTemplate template = plugin.getConfigManager().getTemplateManager().getTemplate(instance.getTemplateName());
+
+        // 检查模板是否有指定重生点
+        if (template != null && template.hasSpawnLocation()) {
+            // 使用模板中的重生点（不包含世界名）
+            spawnLocation = cn.i7mc.sagadungeons.util.LocationUtil.stringToLocationWithoutWorld(template.getSpawnLocation(), world);
+
+            // 如果重生点不可用，使用世界默认出生点
+            if (spawnLocation == null) {
+                spawnLocation = world.getSpawnLocation();
+            }
+        } else {
+            // 使用世界默认出生点
+            spawnLocation = world.getSpawnLocation();
+        }
+
         player.teleport(spawnLocation);
+
+        // 设置游戏模式
+        setPlayerGameMode(player, template);
 
         return true;
     }
@@ -263,8 +398,17 @@ public class DungeonManager {
             player.teleport(Bukkit.getWorlds().get(0).getSpawnLocation());
         }
 
+        // 恢复玩家游戏模式
+        restorePlayerGameMode(player);
+
+        // 清除床重生位置，避免残留的床重生位置影响后续游戏
+        player.setBedSpawnLocation(null, true);
+
         // 清除玩家当前副本
         playerData.setCurrentDungeonId(null);
+
+        // 撤销合法副本进入权限
+        plugin.getDungeonSecurityManager().revokeLegalAccess(player);
 
         // 检查副本是否为空
         DungeonInstance instance = activeDungeons.get(dungeonId);
@@ -284,7 +428,7 @@ public class DungeonManager {
      */
     private boolean checkCreationConditions(Player player, DungeonTemplate template) {
         // 检查金币条件
-        if (template.hasMoneyCost()) {
+        if (template.hasMoneyCost() && template.isMoneyEnabled()) {
             // 检查Vault是否可用
             if (!plugin.getHookManager().isVaultAvailable()) {
                 plugin.getConfigManager().getMessageManager().sendMessage(player, "dungeon.requirement.vault.unavailable");
@@ -300,7 +444,7 @@ public class DungeonManager {
         }
 
         // 检查点券条件
-        if (template.hasPointsCost()) {
+        if (template.hasPointsCost() && template.isPointsEnabled()) {
             // 检查PlayerPoints是否可用
             if (!plugin.getHookManager().isPlayerPointsAvailable()) {
                 plugin.getConfigManager().getMessageManager().sendMessage(player, "dungeon.requirement.playerpoints.unavailable");
@@ -316,7 +460,7 @@ public class DungeonManager {
         }
 
         // 检查等级条件
-        if (template.hasLevelRequirement() && player.getLevel() < template.getLevelRequirement()) {
+        if (template.hasLevelRequirement() && template.isLevelEnabled() && player.getLevel() < template.getLevelRequirement()) {
             plugin.getConfigManager().getMessageManager().sendMessage(player, "dungeon.requirement.level.fail",
                     plugin.getConfigManager().getMessageManager().createPlaceholders("level", String.valueOf(template.getLevelRequirement())));
             return false;
@@ -375,6 +519,14 @@ public class DungeonManager {
     }
 
     /**
+     * 获取活动副本数量
+     * @return 活动副本数量
+     */
+    public int getActiveDungeonCount() {
+        return activeDungeons.size();
+    }
+
+    /**
      * 获取冷却管理器
      * @return 冷却管理器
      */
@@ -399,6 +551,16 @@ public class DungeonManager {
     }
 
     /**
+     * 获取玩家当前所在副本ID
+     * @param player 玩家
+     * @return 副本ID，如果不在副本中则返回null
+     */
+    public String getCurrentDungeonId(Player player) {
+        PlayerData playerData = getPlayerData(player.getUniqueId());
+        return playerData.getCurrentDungeonId();
+    }
+
+    /**
      * 获取奖励管理器
      * @return 奖励管理器
      */
@@ -407,85 +569,29 @@ public class DungeonManager {
     }
 
     /**
+     * 获取触发器管理器
+     * @return 触发器管理器
+     */
+    public TriggerManager getTriggerManager() {
+        return triggerManager;
+    }
+
+    /**
      * 加载副本数据
      */
     private void loadDungeonData() {
-        // 获取副本数据文件
+        // 由于我们在服务器启动时清理所有残留副本，所以不需要加载之前的副本ID记录
+        // 直接重置nextDungeonNumber为1
+        nextDungeonNumber = 1;
+
+        // 删除旧的dungeons.yml文件
         File dungeonDataFile = new File(plugin.getDataFolder(), "dungeons.yml");
-
-        // 检查文件是否存在
-        if (!dungeonDataFile.exists()) {
-            return;
+        if (dungeonDataFile.exists()) {
+            dungeonDataFile.delete();
         }
 
-        // 加载配置
-        FileConfiguration config = YamlConfiguration.loadConfiguration(dungeonDataFile);
-
-        // 加载副本数据
-        ConfigurationSection dungeonsSection = config.getConfigurationSection("dungeons");
-        if (dungeonsSection == null) {
-            return;
-        }
-
-        // 获取下一个副本编号
-        nextDungeonNumber = config.getInt("nextDungeonNumber", 1);
-
-        // 遍历所有副本
-        for (String dungeonId : dungeonsSection.getKeys(false)) {
-            ConfigurationSection dungeonSection = dungeonsSection.getConfigurationSection(dungeonId);
-            if (dungeonSection == null) {
-                continue;
-            }
-
-            try {
-                // 获取副本数据
-                String templateName = dungeonSection.getString("templateName");
-                UUID ownerUUID = UUID.fromString(dungeonSection.getString("ownerUUID"));
-                String worldName = dungeonSection.getString("worldName");
-                boolean isPublic = dungeonSection.getBoolean("isPublic", false);
-                long expirationTime = dungeonSection.getLong("expirationTime", 0);
-                String displayName = dungeonSection.getString("displayName", templateName);
-                String stateStr = dungeonSection.getString("state", "ACTIVE");
-                DungeonState state = DungeonState.valueOf(stateStr);
-
-                // 检查世界是否存在
-                World world = Bukkit.getWorld(worldName);
-                if (world == null) {
-                    plugin.getLogger().warning("副本世界不存在: " + worldName);
-                    continue;
-                }
-
-                // 创建副本实例
-                DungeonInstance instance = new DungeonInstance(dungeonId, templateName, ownerUUID);
-                instance.setWorld(world);
-                instance.setPublic(isPublic);
-                instance.setExpirationTime(expirationTime);
-                instance.setDisplayName(displayName);
-                instance.setState(state);
-
-                // 加载允许的玩家
-                ConfigurationSection allowedPlayersSection = dungeonSection.getConfigurationSection("allowedPlayers");
-                if (allowedPlayersSection != null) {
-                    for (String playerUUIDStr : allowedPlayersSection.getKeys(false)) {
-                        try {
-                            UUID playerUUID = UUID.fromString(playerUUIDStr);
-                            instance.addAllowedPlayer(playerUUID);
-                        } catch (IllegalArgumentException e) {
-                            plugin.getLogger().warning("无效的玩家UUID: " + playerUUIDStr);
-                        }
-                    }
-                }
-
-                // 添加到活动副本列表
-                activeDungeons.put(dungeonId, instance);
-
-                // 启动超时任务
-                instance.startTimeoutTask();
-            } catch (Exception e) {
-                plugin.getLogger().warning("加载副本数据失败: " + dungeonId);
-                e.printStackTrace();
-            }
-        }
+        // 不需要加载旧的副本数据，因为所有残留副本都会被清理
+        // 活动副本列表将保持为空，直到有新的副本被创建
     }
 
     /**
@@ -528,7 +634,6 @@ public class DungeonManager {
                     playerDataMap.put(playerUUID, playerData);
                 }
             } catch (IllegalArgumentException e) {
-                plugin.getLogger().warning("Invalid UUID in player data: " + uuidString);
             }
         }
     }
@@ -599,7 +704,6 @@ public class DungeonManager {
         try {
             config.save(dungeonDataFile);
         } catch (IOException e) {
-            plugin.getLogger().severe("Failed to save dungeon data: " + e.getMessage());
         }
     }
 
@@ -633,7 +737,6 @@ public class DungeonManager {
         try {
             config.save(playerDataFile);
         } catch (IOException e) {
-            plugin.getLogger().severe("Failed to save player data: " + e.getMessage());
         }
     }
 
@@ -644,4 +747,65 @@ public class DungeonManager {
         // 每5分钟自动保存一次数据
         Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, this::saveAllData, 6000L, 6000L);
     }
+
+    /**
+     * 根据世界名称查找对应的副本实例
+     * @param worldName 世界名称
+     * @return 副本实例，如果找不到则返回null
+     */
+    public DungeonInstance findDungeonByWorldName(String worldName) {
+        for (DungeonInstance instance : activeDungeons.values()) {
+            if (instance.getWorld() != null && instance.getWorld().getName().equals(worldName)) {
+                return instance;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 设置玩家游戏模式
+     * @param player 玩家
+     * @param template 副本模板
+     */
+    public void setPlayerGameMode(Player player, DungeonTemplate template) {
+        // 检查是否启用强制游戏模式
+        if (!template.isForceGameMode()) {
+            return;
+        }
+
+        // 获取玩家数据
+        PlayerData playerData = getPlayerData(player.getUniqueId());
+
+        // 保存玩家当前游戏模式
+        playerData.setOriginalGameMode(player.getGameMode());
+
+        // 设置新的游戏模式
+        try {
+            org.bukkit.GameMode gameMode = org.bukkit.GameMode.valueOf(template.getGameMode().toUpperCase());
+            player.setGameMode(gameMode);
+        } catch (IllegalArgumentException e) {
+            // 如果游戏模式无效，默认使用冒险模式
+            player.setGameMode(org.bukkit.GameMode.ADVENTURE);
+        }
+    }
+
+    /**
+     * 恢复玩家游戏模式
+     * @param player 玩家
+     */
+    public void restorePlayerGameMode(Player player) {
+        // 获取玩家数据
+        PlayerData playerData = getPlayerData(player.getUniqueId());
+
+        // 获取原始游戏模式
+        org.bukkit.GameMode originalGameMode = playerData.getOriginalGameMode();
+
+        // 如果有保存的原始游戏模式，则恢复
+        if (originalGameMode != null) {
+            player.setGameMode(originalGameMode);
+            // 清除保存的游戏模式
+            playerData.setOriginalGameMode(null);
+        }
+    }
+
 }

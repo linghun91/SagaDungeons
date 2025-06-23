@@ -11,9 +11,9 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 
 /**
  * 怪物刷怪点编辑界面
@@ -31,7 +31,7 @@ public class MobSpawnerGUI extends AbstractGUI {
      * @param player 玩家
      */
     public MobSpawnerGUI(SagaDungeons plugin, Player player) {
-        super(plugin, player, "&6怪物刷怪点编辑", 54);
+        super(plugin, player, plugin.getConfigManager().getGUILanguageManager().getGUIText("mob-spawner.title"), 54);
         this.mythicMobsHook = plugin.getHookManager().getMythicMobsHook();
 
         // 检查MythicMobs是否可用
@@ -60,13 +60,13 @@ public class MobSpawnerGUI extends AbstractGUI {
 
         // 填充边框
         for (int i = 0; i < 9; i++) {
-            inventory.setItem(i, new ItemBuilder(Material.BLACK_STAINED_GLASS_PANE).setName(" ").build());
-            inventory.setItem(45 + i, new ItemBuilder(Material.BLACK_STAINED_GLASS_PANE).setName(" ").build());
+            inventory.setItem(i, new ItemBuilder(Material.BLACK_STAINED_GLASS_PANE).setName(getGUIText("common.border")).build());
+            inventory.setItem(45 + i, new ItemBuilder(Material.BLACK_STAINED_GLASS_PANE).setName(getGUIText("common.border")).build());
         }
 
         for (int i = 0; i < 5; i++) {
-            inventory.setItem(i * 9, new ItemBuilder(Material.BLACK_STAINED_GLASS_PANE).setName(" ").build());
-            inventory.setItem(i * 9 + 8, new ItemBuilder(Material.BLACK_STAINED_GLASS_PANE).setName(" ").build());
+            inventory.setItem(i * 9, new ItemBuilder(Material.BLACK_STAINED_GLASS_PANE).setName(getGUIText("common.border")).build());
+            inventory.setItem(i * 9 + 8, new ItemBuilder(Material.BLACK_STAINED_GLASS_PANE).setName(getGUIText("common.border")).build());
         }
 
         // 添加怪物类型
@@ -78,9 +78,11 @@ public class MobSpawnerGUI extends AbstractGUI {
             String mobType = mobTypes.get(i);
 
             // 创建物品
+            Map<String, String> placeholders = new HashMap<>();
+            placeholders.put("mob", mobType);
             ItemStack item = new ItemBuilder(Material.ZOMBIE_SPAWN_EGG)
-                    .setName("&e" + mobType)
-                    .setLore("&7点击在当前位置创建刷怪点")
+                    .setName(getGUIText("mob-spawner.mob-info", placeholders))
+                    .setLore(getGUIText("mob-spawner.click-to-select"))
                     .build();
 
             // 添加到界面
@@ -95,15 +97,22 @@ public class MobSpawnerGUI extends AbstractGUI {
 
         // 添加翻页按钮
         if (page > 0) {
-            inventory.setItem(48, new ItemBuilder(Material.ARROW).setName("&a上一页").build());
+            inventory.setItem(48, new ItemBuilder(Material.ARROW).setName(getGUIText("mob-spawner.previous-page")).build());
         }
 
         if (endIndex < mobTypes.size()) {
-            inventory.setItem(50, new ItemBuilder(Material.ARROW).setName("&a下一页").build());
+            inventory.setItem(50, new ItemBuilder(Material.ARROW).setName(getGUIText("mob-spawner.next-page")).build());
         }
 
-        // 添加关闭按钮
-        inventory.setItem(49, new ItemBuilder(Material.BARRIER).setName("&c关闭").build());
+        // 添加页面信息和关闭按钮
+        int totalPages = (mobTypes.size() + 27) / 28;
+        Map<String, String> pageInfo = new HashMap<>();
+        pageInfo.put("current", String.valueOf(page + 1));
+        pageInfo.put("total", String.valueOf(totalPages));
+        inventory.setItem(49, new ItemBuilder(Material.BOOK)
+                .setName(getGUIText("mob-spawner.page-info", pageInfo))
+                .setLore(getGUIText("common.close"))
+                .build());
     }
 
     /**

@@ -1,16 +1,19 @@
 package cn.i7mc.sagadungeons.hook;
 
 import cn.i7mc.sagadungeons.SagaDungeons;
+import cn.i7mc.sagadungeons.util.DebugUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.World;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.plugin.Plugin;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
-import java.util.logging.Level;
+import java.util.Map;
 
 /**
  * MythicMobs集成
@@ -36,12 +39,12 @@ public class MythicMobsHook {
                 Method instMethod = mythicBukkitClass.getMethod("inst");
                 mythicMobsInstance = instMethod.invoke(null);
                 available = true;
-                plugin.getLogger().info("成功连接到MythicMobs插件");
+                DebugUtil.debug("hook.mythicmobs.connected");
             } else {
-                plugin.getLogger().warning("未找到MythicMobs插件或插件未启用");
+                DebugUtil.debug("hook.mythicmobs.not-found");
             }
         } catch (Exception e) {
-            plugin.getLogger().log(Level.SEVERE, "连接MythicMobs插件时出错", e);
+            DebugUtil.debug("hook.mythicmobs.connect-error");
         }
     }
 
@@ -74,7 +77,7 @@ public class MythicMobsHook {
             Method isPresentMethod = optional.getClass().getMethod("isPresent");
             return (boolean) isPresentMethod.invoke(optional);
         } catch (Exception e) {
-            plugin.getLogger().log(Level.SEVERE, "检查怪物类型是否存在时出错", e);
+            DebugUtil.debug("hook.mythicmobs.check-mob-error");
             return false;
         }
     }
@@ -100,7 +103,7 @@ public class MythicMobsHook {
 
             return spawner != null;
         } catch (Exception e) {
-            plugin.getLogger().log(Level.SEVERE, "创建刷怪点时出错", e);
+            DebugUtil.debug("hook.mythicmobs.create-spawner-error");
             return false;
         }
     }
@@ -128,7 +131,7 @@ public class MythicMobsHook {
             Method removeSpawnerMethod = spawnerManager.getClass().getMethod("removeSpawner", spawner.getClass());
             return (boolean) removeSpawnerMethod.invoke(spawnerManager, spawner);
         } catch (Exception e) {
-            plugin.getLogger().log(Level.SEVERE, "移除刷怪点时出错", e);
+            DebugUtil.debug("hook.mythicmobs.remove-spawner-error");
             return false;
         }
     }
@@ -175,7 +178,9 @@ public class MythicMobsHook {
 
             return true;
         } catch (Exception e) {
-            plugin.getLogger().log(Level.SEVERE, "设置刷怪点属性时出错", e);
+            Map<String, String> placeholders = new HashMap<>();
+            placeholders.put("name", name);
+            DebugUtil.debug("hook.mythicmobs.setup-spawner-error", placeholders);
             return false;
         }
     }
@@ -205,9 +210,122 @@ public class MythicMobsHook {
                 mobTypes.add(internalName);
             }
         } catch (Exception e) {
-            plugin.getLogger().log(Level.SEVERE, "获取所有怪物类型时出错", e);
+            DebugUtil.debug("hook.mythicmobs.get-mob-types-error");
         }
 
         return mobTypes;
+    }
+
+    /**
+     * 获取MythicMobs怪物的类型名称
+     * @param entity 实体
+     * @return MythicMobs类型名称，如果不是MythicMobs怪物则返回null
+     */
+    public String getMythicMobType(Entity entity) {
+        if (!isAvailable() || entity == null) {
+            return null;
+        }
+
+        try {
+            // 获取MobManager
+            Method getMobManagerMethod = mythicMobsInstance.getClass().getMethod("getMobManager");
+            Object mobManager = getMobManagerMethod.invoke(mythicMobsInstance);
+
+            // 检查是否为MythicMobs怪物
+            Method isMythicMobMethod = mobManager.getClass().getMethod("isMythicMob", Entity.class);
+            boolean isMythicMob = (boolean) isMythicMobMethod.invoke(mobManager, entity);
+
+            if (!isMythicMob) {
+                return null;
+            }
+
+            // 获取MythicMobs实例
+            Method getMythicMobInstanceMethod = mobManager.getClass().getMethod("getMythicMobInstance", Entity.class);
+            Object mythicMobInstance = getMythicMobInstanceMethod.invoke(mobManager, entity);
+
+            if (mythicMobInstance == null) {
+                return null;
+            }
+
+            // 获取类型
+            Method getTypeMethod = mythicMobInstance.getClass().getMethod("getType");
+            Object mythicMobType = getTypeMethod.invoke(mythicMobInstance);
+
+            // 获取内部名称
+            Method getInternalNameMethod = mythicMobType.getClass().getMethod("getInternalName");
+            return (String) getInternalNameMethod.invoke(mythicMobType);
+
+        } catch (Exception e) {
+            DebugUtil.debug("hook.mythicmobs.get-mob-type-error");
+            return null;
+        }
+    }
+
+    /**
+     * 直接在指定位置生成MythicMobs怪物
+     * @param mobType 怪物类型
+     * @param location 生成位置
+     * @param amount 生成数量
+     * @return 生成的实体列表，如果失败则返回空列表
+     */
+    public List<LivingEntity> spawnMob(String mobType, Location location, int amount) {
+        List<LivingEntity> entities = new ArrayList<>();
+
+        if (!isAvailable() || mobType == null || mobType.isEmpty() ||
+            location == null || amount <= 0) {
+            return entities;
+        }
+
+        try {
+            // 获取MobManager
+            Method getMobManagerMethod = mythicMobsInstance.getClass().getMethod("getMobManager");
+            Object mobManager = getMobManagerMethod.invoke(mythicMobsInstance);
+
+            // 获取MythicMob
+            Method getMythicMobMethod = mobManager.getClass().getMethod("getMythicMob", String.class);
+            Object optional = getMythicMobMethod.invoke(mobManager, mobType);
+
+            // 检查是否存在
+            Method isPresentMethod = optional.getClass().getMethod("isPresent");
+            boolean isPresent = (boolean) isPresentMethod.invoke(optional);
+
+            if (!isPresent) {
+                return entities;
+            }
+
+            // 获取MythicMob实例
+            Method getMethod = optional.getClass().getMethod("get");
+            Object mythicMob = getMethod.invoke(optional);
+
+            // 确保区块已加载
+            if (!location.getChunk().isLoaded()) {
+                location.getChunk().load();
+            }
+
+            // 创建AbstractLocation
+            Class<?> bukkitAdapterClass = Class.forName("io.lumine.mythic.bukkit.BukkitAdapter");
+            Method adaptMethod = bukkitAdapterClass.getMethod("adapt", Location.class);
+            Object abstractLocation = adaptMethod.invoke(null, location);
+
+            // 生成怪物
+            Method spawnMethod = mythicMob.getClass().getMethod("spawn", Class.forName("io.lumine.mythic.api.adapters.AbstractLocation"), double.class);
+
+            for (int i = 0; i < amount; i++) {
+                Object activeMob = spawnMethod.invoke(mythicMob, abstractLocation, 1.0);
+
+                // 获取实体
+                Method getEntityMethod = activeMob.getClass().getMethod("getEntity");
+                Object entity = getEntityMethod.invoke(activeMob);
+
+                Method getBukkitEntityMethod = entity.getClass().getMethod("getBukkitEntity");
+                LivingEntity livingEntity = (LivingEntity) getBukkitEntityMethod.invoke(entity);
+
+                entities.add(livingEntity);
+            }
+        } catch (Exception e) {
+            // 忽略异常
+        }
+
+        return entities;
     }
 }
