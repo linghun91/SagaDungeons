@@ -6,7 +6,6 @@ import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -36,25 +35,14 @@ public class CooldownManager {
     public void loadCooldowns() {
         // 清空现有数据
         lastCreationTimes.clear();
-        
-        // 检查文件是否存在
-        if (!cooldownFile.exists()) {
-            return;
+
+        // 删除旧的冷却文件
+        if (cooldownFile.exists()) {
+            cooldownFile.delete();
+            plugin.getLogger().info("已重置玩家冷却时间记录");
         }
-        
-        // 加载配置
-        FileConfiguration config = YamlConfiguration.loadConfiguration(cooldownFile);
-        
-        // 遍历所有玩家
-        for (String uuidString : config.getKeys(false)) {
-            try {
-                UUID uuid = UUID.fromString(uuidString);
-                long time = config.getLong(uuidString);
-                lastCreationTimes.put(uuid, time);
-            } catch (IllegalArgumentException e) {
-                // 忽略无效的UUID
-            }
-        }
+
+        // 不需要加载旧的冷却数据，因为我们希望在服务器重启后重置所有冷却时间
     }
 
     /**
@@ -63,12 +51,12 @@ public class CooldownManager {
     public void saveCooldowns() {
         // 创建配置
         FileConfiguration config = new YamlConfiguration();
-        
+
         // 保存所有玩家的冷却时间
         for (Map.Entry<UUID, Long> entry : lastCreationTimes.entrySet()) {
             config.set(entry.getKey().toString(), entry.getValue());
         }
-        
+
         // 保存到文件
         try {
             config.save(cooldownFile);
@@ -106,7 +94,7 @@ public class CooldownManager {
         if (lastTime == 0) {
             return true;
         }
-        
+
         long cooldownMillis = cooldownSeconds * 1000L;
         return System.currentTimeMillis() - lastTime >= cooldownMillis;
     }
@@ -122,11 +110,11 @@ public class CooldownManager {
         if (lastTime == 0) {
             return 0;
         }
-        
+
         long cooldownMillis = cooldownSeconds * 1000L;
         long elapsedMillis = System.currentTimeMillis() - lastTime;
         long remainingMillis = cooldownMillis - elapsedMillis;
-        
+
         return remainingMillis > 0 ? (int) (remainingMillis / 1000) : 0;
     }
 

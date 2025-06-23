@@ -34,46 +34,57 @@ public class RequirementManager {
         if (section == null) {
             return;
         }
-        
+
         // 加载金币条件
-        if (section.contains("money")) {
+        if (section.contains("money") && template.isMoneyEnabled()) {
             double money = section.getDouble("money");
             if (money > 0) {
                 template.addRequirement(new MoneyRequirement(plugin, money));
             }
         }
-        
+
         // 加载点券条件
-        if (section.contains("points")) {
+        if (section.contains("points") && template.isPointsEnabled()) {
             int points = section.getInt("points");
             if (points > 0) {
                 template.addRequirement(new PointsRequirement(plugin, points));
             }
         }
-        
+
         // 加载等级条件
-        if (section.contains("level")) {
+        if (section.contains("level") && template.isLevelEnabled()) {
             int level = section.getInt("level");
             if (level > 0) {
                 template.addRequirement(new LevelRequirement(plugin, level));
             }
         }
-        
+
         // 加载物品条件
-        ConfigurationSection itemsSection = section.getConfigurationSection("items");
-        if (itemsSection != null) {
-            for (String key : itemsSection.getKeys(false)) {
-                ConfigurationSection itemSection = itemsSection.getConfigurationSection(key);
-                if (itemSection != null) {
-                    String materialName = itemSection.getString("material");
-                    int amount = itemSection.getInt("amount", 1);
-                    String displayName = itemSection.getString("name");
-                    
-                    try {
-                        Material material = Material.valueOf(materialName.toUpperCase());
-                        template.addRequirement(new ItemRequirement(plugin, material, amount, displayName));
-                    } catch (IllegalArgumentException e) {
-                        plugin.getLogger().warning("Invalid material name: " + materialName);
+        if (template.isItemsEnabled()) {
+            ConfigurationSection itemsSection = section.getConfigurationSection("items");
+            if (itemsSection != null) {
+                for (String key : itemsSection.getKeys(false)) {
+                    ConfigurationSection itemSection = itemsSection.getConfigurationSection(key);
+                    if (itemSection != null) {
+                        // 检查是否是序列化物品
+                        if (key.equals("serialized-item")) {
+                            String serializedItem = itemSection.getString("serialized-item");
+                            if (serializedItem != null && !serializedItem.isEmpty()) {
+                                int amount = itemSection.getInt("amount", 1);
+                                template.addRequirement(new SerializedItemRequirement(plugin, serializedItem, amount));
+                            }
+                            continue;
+                        }
+
+                        String materialName = itemSection.getString("material");
+                        int amount = itemSection.getInt("amount", 1);
+                        String displayName = itemSection.getString("name");
+
+                        try {
+                            Material material = Material.valueOf(materialName.toUpperCase());
+                            template.addRequirement(new ItemRequirement(plugin, material, amount, displayName));
+                        } catch (IllegalArgumentException e) {
+                        }
                     }
                 }
             }
@@ -107,10 +118,10 @@ public class RequirementManager {
         if (!checkRequirements(player, requirements)) {
             return false;
         }
-        
+
         // 创建临时列表，用于记录已扣除的条件
         List<DungeonRequirement> takenRequirements = new ArrayList<>();
-        
+
         // 尝试扣除所有条件
         for (DungeonRequirement requirement : requirements) {
             if (requirement.take(player)) {
@@ -122,7 +133,7 @@ public class RequirementManager {
                 return false;
             }
         }
-        
+
         return true;
     }
 }

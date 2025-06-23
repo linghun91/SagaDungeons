@@ -1,10 +1,9 @@
 name: SagaDungeons
-version: '1.0.0'
+version: '1.2.0.97'
 main: cn.i7mc.sagadungeons.SagaDungeons
 api-version: '1.20'
-authors: [linghun91]
+authors: [Saga]
 description: 一个功能完善的Minecraft副本系统插件
-website: https://github.com/linghun91/SagaDungeons
 
 # 软依赖插件
 softdepend:

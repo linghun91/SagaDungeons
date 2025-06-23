@@ -2,12 +2,6 @@ package cn.i7mc.sagadungeons.config;
 
 import cn.i7mc.sagadungeons.SagaDungeons;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 
 /**
  * 配置管理器
@@ -18,8 +12,10 @@ public class ConfigManager {
     private final SagaDungeons plugin;
     private FileConfiguration config;
     private MessageManager messageManager;
+    private GUILanguageManager guiLanguageManager;
     private TemplateManager templateManager;
     private boolean debug;
+    private String language;
 
     public ConfigManager(SagaDungeons plugin) {
         this.plugin = plugin;
@@ -34,10 +30,15 @@ public class ConfigManager {
         plugin.reloadConfig();
         config = plugin.getConfig();
         debug = config.getBoolean("debug", false);
+        language = config.getString("lang", "zh");
 
         // 加载消息配置文件
         messageManager = new MessageManager(plugin);
         messageManager.loadMessages();
+
+        // 加载GUI语言配置文件
+        guiLanguageManager = new GUILanguageManager(plugin);
+        guiLanguageManager.loadGUILanguage();
 
         // 加载模板配置文件
         templateManager = new TemplateManager(plugin);
@@ -52,9 +53,13 @@ public class ConfigManager {
         plugin.reloadConfig();
         config = plugin.getConfig();
         debug = config.getBoolean("debug", false);
+        language = config.getString("lang", "zh");
 
         // 重载消息配置文件
         messageManager.loadMessages();
+
+        // 重载GUI语言配置文件
+        guiLanguageManager.loadGUILanguage();
 
         // 重载模板配置文件
         templateManager.loadTemplates();
@@ -84,6 +89,14 @@ public class ConfigManager {
     }
 
     /**
+     * 获取GUI语言管理器
+     * @return GUI语言管理器
+     */
+    public GUILanguageManager getGUILanguageManager() {
+        return guiLanguageManager;
+    }
+
+    /**
      * 获取模板管理器
      * @return 模板管理器
      */
@@ -97,6 +110,14 @@ public class ConfigManager {
      */
     public boolean isDebugEnabled() {
         return debug;
+    }
+
+    /**
+     * 获取当前语言设置
+     * @return 当前语言代码
+     */
+    public String getLanguage() {
+        return language;
     }
 
     /**
@@ -121,6 +142,14 @@ public class ConfigManager {
      */
     public int getCreationCooldown() {
         return config.getInt("dungeon.creation-cooldown", 300);
+    }
+
+    /**
+     * 获取通关后延迟删除时间(秒)
+     * @return 通关后延迟删除时间
+     */
+    public int getCompletionDeleteDelay() {
+        return config.getInt("dungeon.completion-delete-delay", 10);
     }
 
     /**

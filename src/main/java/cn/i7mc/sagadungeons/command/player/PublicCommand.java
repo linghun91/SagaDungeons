@@ -4,7 +4,6 @@ import cn.i7mc.sagadungeons.SagaDungeons;
 import cn.i7mc.sagadungeons.command.AbstractCommand;
 import cn.i7mc.sagadungeons.dungeon.DungeonInstance;
 import cn.i7mc.sagadungeons.model.PlayerData;
-import cn.i7mc.sagadungeons.util.MessageUtil;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 

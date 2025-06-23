@@ -4,12 +4,15 @@ import cn.i7mc.sagadungeons.SagaDungeons;
 import cn.i7mc.sagadungeons.model.PlayerData;
 import cn.i7mc.sagadungeons.util.MessageUtil;
 import cn.i7mc.sagadungeons.util.TimeUtil;
-import org.bukkit.Bukkit;
-import org.bukkit.World;
+import org.bukkit.*;
+import org.bukkit.entity.Firework;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.meta.FireworkMeta;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.HashSet;
+import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 
@@ -178,14 +181,28 @@ public class DungeonInstance {
             return;
         }
 
-        // 发送完成消息
+        // 计算完成时间
+        long completionTime = System.currentTimeMillis();
+        int completionTimeSeconds = (int) ((completionTime - creationTime) / 1000);
+
+        // 获取配置的延迟删除时间
+        int delaySeconds = plugin.getConfigManager().getCompletionDeleteDelay();
+
+        // 发送完成消息和Title
         for (Player player : world.getPlayers()) {
             // 发送完成消息
             MessageUtil.sendMessage(player, "dungeon.completion.success",
-                    MessageUtil.createPlaceholders("dungeon", displayName));
+                    MessageUtil.createPlaceholders("dungeon", displayName,
+                            "time", cn.i7mc.sagadungeons.util.TimeUtil.formatTimeShort(completionTimeSeconds)));
 
-            // 给予奖励
+            // 显示Title
+            showCompletionTitle(player, delaySeconds);
+
+            // 给予基础奖励
             plugin.getDungeonManager().getRewardManager().giveRewards(player, templateName);
+
+            // 给予时间奖励
+            plugin.getDungeonManager().getRewardManager().giveTimeRewards(player, templateName, completionTimeSeconds);
 
             // 更新玩家统计数据
             PlayerData playerData = plugin.getDungeonManager().getPlayerData(player.getUniqueId());
@@ -194,11 +211,66 @@ public class DungeonInstance {
             }
         }
 
-        // 延迟删除副本
-        Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            // 删除副本
-            plugin.getDungeonManager().deleteDungeon(id);
-        }, 200L); // 10秒后删除
+        // 启动烟花效果
+        startFireworkEffect();
+
+        // 启动倒计时任务
+        startCompletionCountdown(delaySeconds);
+    }
+
+    /**
+     * 启动通关后倒计时
+     * @param delaySeconds 延迟秒数
+     */
+    private void startCompletionCountdown(int delaySeconds) {
+        SagaDungeons plugin = SagaDungeons.getInstance();
+
+        // 创建倒计时任务
+        new BukkitRunnable() {
+            private int remainingSeconds = delaySeconds;
+
+            @Override
+            public void run() {
+                // 检查副本世界是否还存在
+                if (world == null || world.getPlayers().isEmpty()) {
+                    // 如果没有玩家了，直接删除副本
+                    plugin.getDungeonManager().deleteDungeon(id);
+                    this.cancel();
+                    return;
+                }
+
+                // 如果倒计时结束，删除副本
+                if (remainingSeconds <= 0) {
+                    plugin.getDungeonManager().deleteDungeon(id);
+                    this.cancel();
+                    return;
+                }
+
+                // 发送倒计时消息
+                String messageKey = null;
+
+                if (remainingSeconds <= 3) {
+                    // 最后3秒每秒提示
+                    messageKey = "dungeon.completion.countdown.urgent";
+                } else if (remainingSeconds % 5 == 0) {
+                    // 每5秒提示一次
+                    messageKey = "dungeon.completion.countdown.normal";
+                }
+
+                if (messageKey != null) {
+                    for (Player player : world.getPlayers()) {
+                        // 发送聊天消息
+                        MessageUtil.sendMessage(player, messageKey,
+                                MessageUtil.createPlaceholders("time", String.valueOf(remainingSeconds)));
+
+                        // 显示倒计时Title
+                        showCountdownTitle(player, remainingSeconds);
+                    }
+                }
+
+                remainingSeconds--;
+            }
+        }.runTaskTimer(plugin, 0L, 20L); // 每秒执行一次
     }
 
     /**
@@ -306,5 +378,134 @@ public class DungeonInstance {
      */
     public int getPlayerCount() {
         return world != null ? world.getPlayers().size() : 0;
+    }
+
+    /**
+     * 显示通关Title
+     * @param player 玩家
+     * @param delaySeconds 延迟秒数
+     */
+    private void showCompletionTitle(Player player, int delaySeconds) {
+        SagaDungeons plugin = SagaDungeons.getInstance();
+
+        // 获取Title消息
+        String mainTitle = plugin.getConfigManager().getMessageManager().getMessage("dungeon.completion.title.main");
+        String subTitle = plugin.getConfigManager().getMessageManager().getMessage("dungeon.completion.title.sub",
+                MessageUtil.createPlaceholders("time", String.valueOf(delaySeconds)));
+
+        // 使用Bukkit原生API发送Title
+        try {
+            // 尝试使用新版本的sendTitle方法
+            player.sendTitle(mainTitle, subTitle, 10, 70, 20);
+        } catch (Exception e) {
+            // 如果新版本方法不可用，使用旧版本方法
+            try {
+                player.getClass().getMethod("sendTitle", String.class, String.class, int.class, int.class, int.class)
+                        .invoke(player, mainTitle, subTitle, 10, 70, 20);
+            } catch (Exception ex) {
+                // 如果都不可用，只发送聊天消息
+                player.sendMessage(mainTitle);
+                player.sendMessage(subTitle);
+            }
+        }
+    }
+
+    /**
+     * 启动烟花效果
+     */
+    private void startFireworkEffect() {
+        if (world == null) {
+            return;
+        }
+
+        SagaDungeons plugin = SagaDungeons.getInstance();
+
+        // 创建烟花效果任务
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                // 检查副本世界是否还存在
+                if (world == null || world.getPlayers().isEmpty()) {
+                    this.cancel();
+                    return;
+                }
+
+                // 为每个玩家生成烟花
+                for (Player player : world.getPlayers()) {
+                    spawnFireworksForPlayer(player);
+                }
+            }
+        }.runTaskTimer(plugin, 0L, 60L); // 每3秒执行一次 (60 ticks = 3秒)
+    }
+
+    /**
+     * 为玩家生成烟花
+     * @param player 玩家
+     */
+    private void spawnFireworksForPlayer(Player player) {
+        Random random = new Random();
+
+        // 生成3个随机样式的烟花
+        for (int i = 0; i < 3; i++) {
+            // 在玩家位置生成烟花
+            Firework firework = world.spawn(player.getLocation(), Firework.class);
+            FireworkMeta meta = firework.getFireworkMeta();
+
+            // 创建随机烟花效果
+            FireworkEffect.Builder builder = FireworkEffect.builder();
+
+            // 随机烟花类型
+            FireworkEffect.Type[] types = FireworkEffect.Type.values();
+            builder.with(types[random.nextInt(types.length)]);
+
+            // 随机颜色
+            Color[] colors = {Color.RED, Color.BLUE, Color.GREEN, Color.YELLOW, Color.PURPLE, Color.ORANGE, Color.WHITE};
+            builder.withColor(colors[random.nextInt(colors.length)]);
+            builder.withFade(colors[random.nextInt(colors.length)]);
+
+            // 随机效果
+            if (random.nextBoolean()) {
+                builder.flicker(true);
+            }
+            if (random.nextBoolean()) {
+                builder.trail(true);
+            }
+
+            // 应用效果
+            meta.addEffect(builder.build());
+            meta.setPower(random.nextInt(2) + 1); // 1-2的随机威力
+            firework.setFireworkMeta(meta);
+        }
+    }
+
+    /**
+     * 显示倒计时Title
+     * @param player 玩家
+     * @param remainingSeconds 剩余秒数
+     */
+    private void showCountdownTitle(Player player, int remainingSeconds) {
+        SagaDungeons plugin = SagaDungeons.getInstance();
+
+        // 获取Title消息
+        String mainTitle = plugin.getConfigManager().getMessageManager().getMessage("dungeon.completion.title.main");
+        String subTitleKey = remainingSeconds <= 3 ? "dungeon.completion.title.sub-urgent" : "dungeon.completion.title.sub";
+        String subTitle = plugin.getConfigManager().getMessageManager().getMessage(subTitleKey,
+                MessageUtil.createPlaceholders("time", String.valueOf(remainingSeconds)));
+
+        // 使用Bukkit原生API发送Title
+        try {
+            // 尝试使用新版本的sendTitle方法
+            player.sendTitle(mainTitle, subTitle, 5, 25, 5);
+        } catch (Exception e) {
+            // 如果新版本方法不可用，使用旧版本方法
+            try {
+                player.getClass().getMethod("sendTitle", String.class, String.class, int.class, int.class, int.class)
+                        .invoke(player, mainTitle, subTitle, 5, 25, 5);
+            } catch (Exception ex) {
+                // 如果都不可用，只发送聊天消息
+                player.sendMessage(mainTitle);
+                player.sendMessage(subTitle);
+            }
+        }
     }
 }

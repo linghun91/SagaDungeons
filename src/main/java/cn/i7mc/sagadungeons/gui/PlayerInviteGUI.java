@@ -2,7 +2,6 @@ package cn.i7mc.sagadungeons.gui;
 
 import cn.i7mc.sagadungeons.SagaDungeons;
 import cn.i7mc.sagadungeons.dungeon.DungeonInstance;
-import cn.i7mc.sagadungeons.model.DungeonInvitation;
 import cn.i7mc.sagadungeons.util.MessageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -13,7 +12,6 @@ import org.bukkit.inventory.meta.SkullMeta;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * 玩家邀请界面
@@ -31,7 +29,7 @@ public class PlayerInviteGUI extends AbstractGUI {
      * @param dungeonId 副本ID
      */
     public PlayerInviteGUI(SagaDungeons plugin, Player player, String dungeonId) {
-        super(plugin, player, "&6邀请玩家", 54);
+        super(plugin, player, plugin.getConfigManager().getGUILanguageManager().getGUIText("player-invite.title"), 54);
         this.dungeonId = dungeonId;
         this.dungeon = plugin.getDungeonManager().getDungeon(dungeonId);
     }
@@ -50,13 +48,13 @@ public class PlayerInviteGUI extends AbstractGUI {
         
         // 填充边框
         for (int i = 0; i < 9; i++) {
-            inventory.setItem(i, new ItemBuilder(Material.BLACK_STAINED_GLASS_PANE).setName(" ").build());
-            inventory.setItem(45 + i, new ItemBuilder(Material.BLACK_STAINED_GLASS_PANE).setName(" ").build());
+            inventory.setItem(i, new ItemBuilder(Material.BLACK_STAINED_GLASS_PANE).setName(getGUIText("common.border")).build());
+            inventory.setItem(45 + i, new ItemBuilder(Material.BLACK_STAINED_GLASS_PANE).setName(getGUIText("common.border")).build());
         }
-        
+
         for (int i = 0; i < 5; i++) {
-            inventory.setItem(i * 9, new ItemBuilder(Material.BLACK_STAINED_GLASS_PANE).setName(" ").build());
-            inventory.setItem(i * 9 + 8, new ItemBuilder(Material.BLACK_STAINED_GLASS_PANE).setName(" ").build());
+            inventory.setItem(i * 9, new ItemBuilder(Material.BLACK_STAINED_GLASS_PANE).setName(getGUIText("common.border")).build());
+            inventory.setItem(i * 9 + 8, new ItemBuilder(Material.BLACK_STAINED_GLASS_PANE).setName(getGUIText("common.border")).build());
         }
         
         // 添加在线玩家
@@ -71,15 +69,16 @@ public class PlayerInviteGUI extends AbstractGUI {
             ItemStack skull = new ItemStack(Material.PLAYER_HEAD);
             SkullMeta meta = (SkullMeta) skull.getItemMeta();
             meta.setOwningPlayer(onlinePlayer);
-            meta.setDisplayName(MessageUtil.colorize("&e" + onlinePlayer.getName()));
+            meta.setDisplayName(MessageUtil.colorize(getGUIText("player-invite.player-name-format",
+                    MessageUtil.createPlaceholders("name", onlinePlayer.getName()))));
             
             // 创建描述
             List<String> lore = new ArrayList<>();
-            lore.add("&7点击邀请该玩家");
-            
+            lore.add(getGUIText("player-invite.click-to-invite"));
+
             // 检查是否已经被邀请
             if (dungeon.isAllowed(onlinePlayer.getUniqueId())) {
-                lore.add("&a已被邀请");
+                lore.add(getGUIText("player-invite.already-invited"));
             }
             
             meta.setLore(MessageUtil.colorize(lore));
@@ -101,7 +100,7 @@ public class PlayerInviteGUI extends AbstractGUI {
         }
         
         // 添加返回按钮
-        inventory.setItem(49, new ItemBuilder(Material.ARROW).setName("&a返回").build());
+        inventory.setItem(49, new ItemBuilder(Material.ARROW).setName(getGUIText("player-invite.back-button")).build());
     }
 
     /**

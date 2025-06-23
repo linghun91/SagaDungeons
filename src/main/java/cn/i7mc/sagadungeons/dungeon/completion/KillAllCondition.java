@@ -2,10 +2,8 @@ package cn.i7mc.sagadungeons.dungeon.completion;
 
 import cn.i7mc.sagadungeons.SagaDungeons;
 import cn.i7mc.sagadungeons.dungeon.DungeonInstance;
-import cn.i7mc.sagadungeons.model.DungeonTemplate;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
 
