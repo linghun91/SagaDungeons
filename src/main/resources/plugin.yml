@@ -1,0 +1,109 @@
+name: SagaDungeons
+version: '1.2.1.53'
+main: cn.i7mc.sagadungeons.SagaDungeons
+api-version: '1.20'
+authors: [Saga]
+description: 一个功能完善的Minecraft副本系统插件
+
+# 软依赖插件
+softdepend:
+  - MythicMobs
+  - PlaceholderAPI
+
+# 命令
+commands:
+  sagadungeons:
+    description: SagaDungeons主命令
+    aliases: [sd]
+    usage: /sd help
+    permission: sagadungeons.use
+
+# 权限配置
+permissions:
+  # ==================== 基础权限 ====================
+  sagadungeons.use:
+    description: 允许使用SagaDungeons基本命令
+    default: true
+  
+  # ==================== 玩家命令权限 ====================
+  sagadungeons.command.create:
+    description: 允许创建副本实例
+    default: true
+  
+  sagadungeons.command.join:
+    description: 允许加入副本
+    default: true
+  
+  sagadungeons.command.list:
+    description: 允许列出可用副本
+    default: true
+  
+  sagadungeons.command.stats:
+    description: 允许查看副本统计信息
+    default: true
+  
+  sagadungeons.command.invite:
+    description: 允许邀请其他玩家加入副本
+    default: true
+  
+  sagadungeons.command.kick:
+    description: 允许踢出副本中的玩家
+    default: true
+  
+  sagadungeons.command.leave:
+    description: 允许离开当前副本
+    default: true
+  
+  sagadungeons.command.public:
+    description: 允许设置副本为公开状态
+    default: true
+  
+  # ==================== 管理员权限 ====================
+  sagadungeons.admin:
+    description: 允许使用SagaDungeons管理员命令
+    default: op
+    children:
+      sagadungeons.command.create: true
+      sagadungeons.command.join: true
+      sagadungeons.command.list: true
+      sagadungeons.command.stats: true
+      sagadungeons.command.invite: true
+      sagadungeons.command.kick: true
+      sagadungeons.command.leave: true
+      sagadungeons.command.public: true
+  
+  sagadungeons.admin.spawner:
+    description: 允许管理刷怪笼系统
+    default: op
+  
+  # ==================== 权限组 ====================
+  sagadungeons.player:
+    description: 玩家权限组 - 包含所有基础玩家命令
+    default: true
+    children:
+      sagadungeons.use: true
+      sagadungeons.command.create: true
+      sagadungeons.command.join: true
+      sagadungeons.command.list: true
+      sagadungeons.command.stats: true
+      sagadungeons.command.invite: true
+      sagadungeons.command.kick: true
+      sagadungeons.command.leave: true
+      sagadungeons.command.public: true
+  
+  sagadungeons.superadmin:
+    description: 超级管理员权限 - 拥有所有权限
+    default: op
+    children:
+      sagadungeons.player: true
+      sagadungeons.admin: true
+      sagadungeons.admin.spawner: true
+  
+  # ==================== 兼容性权限 ====================
+  sagadungeons.create.all:
+    description: 允许创建任何模板的副本 (兼容性权限)
+    default: op
+  
+  sagadungeons.join:
+    description: 允许加入副本 (兼容性权限,建议使用sagadungeons.command.join)
+    default: true
